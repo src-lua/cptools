@@ -1,0 +1,55 @@
+#compdef cptools cpt
+
+_cptools() {
+    local context state state_descr line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :->cmds' \
+        '*:: :->args'
+
+    case $state in
+        cmds)
+            local -a commands
+            commands=(
+                'new:Create a new contest'
+                'add:Add a single file with template'
+                'mark:Mark problem status (default: AC)'
+                'status:Show contest progress summary'
+                'clean:Remove compiled binaries'
+                'update:Update info.md'
+            )
+            _describe 'command' commands
+            ;;
+        args)
+            case $line[1] in
+                mark)
+                    _arguments \
+                        '1:problem:_files -g "*.cpp(.:r)"' \
+                        '2:status:(AC WA TLE MLE RE WIP ~)' \
+                        '3:directory:_files -/'
+                    ;;
+                add)
+                    _arguments \
+                        '1:name:' \
+                        '2:directory:_files -/'
+                    ;;
+                clean|update)
+                    _arguments \
+                        '--all[Apply to all platform directories]' \
+                        '*:directory:_files -/'
+                    ;;
+                new)
+                    _arguments \
+                        '1:url:'
+                    ;;
+                status)
+                    _arguments \
+                        '1:directory:_files -/'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_cptools "$@"
