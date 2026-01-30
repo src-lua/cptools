@@ -45,6 +45,8 @@ _cptools() {
                 test)
                     _arguments \
                         '1:problem:_files -g "*.cpp(.:r)"' \
+                        '--add[Add a custom test case]' \
+                        '--no-out[Skip output generation (with --add)]' \
                         '2:directory:_files -/'
                     ;;
                 fetch)
@@ -59,7 +61,13 @@ _cptools() {
                         '3:generator:_files -g "*.cpp(.:r)"' \
                         '--checker[Custom checker]:checker:_files -g "*.cpp(.:r)"'
                     ;;
-                clean|update)
+                clean)
+                    _arguments \
+                        '--all[Apply to all platform directories]' \
+                        '-r[Clean recursively]' \
+                        '*:directory:_files -/'
+                    ;;
+                update)
                     _arguments \
                         '--all[Apply to all platform directories]' \
                         '*:directory:_files -/'

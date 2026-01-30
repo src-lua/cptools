@@ -4,8 +4,6 @@ CLI toolkit for managing competitive programming contests and solutions.
 
 Supports Codeforces, AtCoder, vJudge, and custom judges.
 
-Note: fetch is currently in beta and may not work as expected on all problems/platforms/devices.
-
 ## Installation
 
 ```bash
@@ -57,7 +55,7 @@ Add a solution file. Accepts a problem name (local) or a URL (isolated problem).
 cpt add A2           # creates A2.cpp in current dir
 cpt add B-brute      # creates B-brute.cpp
 
-# Isolated problems — creates file in Platform/Problemset/, fetches samples:
+# Isolated problems — creates file in Platform/Problemset/:
 cpt add https://codeforces.com/problemset/problem/1234/A
 cpt add https://codeforces.com/contest/1999/problem/G2
 cpt add https://atcoder.jp/contests/abc300/tasks/abc300_a
@@ -100,9 +98,13 @@ Compile and test a solution.
 cpt test A                  # runs against fetched samples if available
 cpt test A < input.txt      # pipe custom input
 cpt test A                  # interactive stdin if no samples
+cpt test A --add            # add custom test case (input + expected output)
+cpt test A --add --no-out   # add custom test case (input only)
 ```
 
 If sample files exist (from `cpt fetch`), tests against each one and reports PASS/FAIL. Uses compiler and flags from config.
+
+With `--add`, prompts for input (and optionally output) via stdin, saving as the next available index (e.g., `A_3.in`/`A_3.out`).
 
 ### `cptools fetch <problem> [directory]`
 
@@ -129,13 +131,14 @@ cpt stress A A-brute gen --checker checker
 - With `--checker`, runs `./checker input output_sol output_brute`
 - Stops on first mismatch, showing input and both outputs
 
-### `cptools clean [--all | directory]`
+### `cptools clean [-r] [--all | directory]`
 
 Remove compiled binaries and build artifacts.
 
 ```bash
-cpt clean            # clean current directory
-cpt clean --all      # clean all platform directories
+cpt clean            # clean current directory (non-recursive)
+cpt clean -r         # clean current directory recursively
+cpt clean --all      # clean all platform directories (recursive)
 ```
 
 ### `cptools update [--all | directory]`
@@ -200,8 +203,11 @@ contests/
 ├── Codeforces/
 │   └── 1234/
 ├── Codeforces/Gym/
+├── Codeforces/Problemset/
 ├── vJudge/
 ├── AtCoder/
+├── AtCoder/Problemset/
+├── Yosupo/
 └── Other/
 ```
 

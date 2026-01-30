@@ -4,11 +4,14 @@ Compile and test a solution.
 
 Usage:
     cptools test <problem> [directory]
+    cptools test <problem> --add [--no-out]
 
 Examples:
     cptools test A                  # compile & run A.cpp
     cptools test A < input.txt      # pipe input from file
-    cptools test A                  # auto-tests if A1.in exists (from cpt fetch)
+    cptools test A                  # auto-tests if A_1.in exists (from cpt fetch)
+    cptools test A --add            # add custom test, generate expected output
+    cptools test A --add --no-out   # add custom test, skip output generation
 """
 import os
 import sys
@@ -24,20 +27,22 @@ def eprint(*args, **kwargs):
 
 
 def find_samples(directory, problem):
-    """Find sample files like A_1.in, A_2.in, etc."""
+    """Find sample files like A_1.in, A_2.in, etc. Handles gaps in numbering."""
+    import re
+    pattern = re.compile(rf'^{re.escape(problem)}_(\d+)\.in$')
     samples = []
-    i = 1
-    while True:
-        in_file = os.path.join(directory, f"{problem}_{i}.in")
-        if not os.path.exists(in_file):
-            break
-        out_file = os.path.join(directory, f"{problem}_{i}.out")
-        samples.append({
-            'in': in_file,
-            'out': out_file if os.path.exists(out_file) else None,
-            'num': i,
-        })
-        i += 1
+    for f in os.listdir(directory):
+        m = pattern.match(f)
+        if m:
+            num = int(m.group(1))
+            in_file = os.path.join(directory, f)
+            out_file = os.path.join(directory, f"{problem}_{num}.out")
+            samples.append({
+                'in': in_file,
+                'out': out_file if os.path.exists(out_file) else None,
+                'num': num,
+            })
+    samples.sort(key=lambda s: s['num'])
     return samples
 
 def compile_solution(source, binary, config):
@@ -102,13 +107,71 @@ def run_with_samples(binary, samples):
     eprint(f"\n{Colors.BOLD}{passed}/{total} passed.{Colors.ENDC}")
     return passed == total
 
+def next_test_index(directory, problem):
+    """Find the next available test index."""
+    i = 1
+    while os.path.exists(os.path.join(directory, f"{problem}_{i}.in")):
+        i += 1
+    return i
+
+
+def read_until_separator(label):
+    """Read stdin until Ctrl+D, then reopen tty for next read."""
+    eprint(f"{Colors.BLUE}{label} (Ctrl+D to finish):{Colors.ENDC}")
+    data = sys.stdin.read()
+    # Reopen tty so we can read again
+    sys.stdin = open('/dev/tty', 'r')
+    return data
+
+
+def add_test(problem, directory, with_output):
+    """Add a custom test case with the next available index."""
+    idx = next_test_index(directory, problem)
+    in_path = os.path.join(directory, f"{problem}_{idx}.in")
+    out_path = os.path.join(directory, f"{problem}_{idx}.out")
+
+    eprint(f"{Colors.HEADER}--- Adding Test {problem}_{idx} ---{Colors.ENDC}")
+
+    input_data = read_until_separator("Input")
+
+    with open(in_path, 'w') as f:
+        f.write(input_data)
+        if input_data and not input_data.endswith('\n'):
+            f.write('\n')
+
+    eprint(f"  {Colors.GREEN}+ {problem}_{idx}.in{Colors.ENDC}")
+
+    if with_output:
+        output_data = read_until_separator("Output")
+
+        with open(out_path, 'w') as f:
+            f.write(output_data)
+            if output_data and not output_data.endswith('\n'):
+                f.write('\n')
+
+        eprint(f"  {Colors.GREEN}+ {problem}_{idx}.out{Colors.ENDC}")
+
+    eprint(f"\n{Colors.BOLD}Test {problem}_{idx} added.{Colors.ENDC}")
+
+
 def main():
     if len(sys.argv) < 2:
         eprint(f"{Colors.FAIL}Usage: cptools test <problem> [directory]{Colors.ENDC}")
+        eprint(f"  cptools test <problem> --add [--no-out]")
         sys.exit(1)
 
     problem = sys.argv[1].replace('.cpp', '')
-    directory = sys.argv[2] if len(sys.argv) > 2 else os.getcwd()
+
+    add_mode = '--add' in sys.argv
+    no_output = '--no-out' in sys.argv
+
+    # Get directory: first non-flag arg after problem
+    args = [a for a in sys.argv[2:] if not a.startswith('--')]
+    directory = args[0] if args else os.getcwd()
+
+    if add_mode:
+        add_test(problem, directory, with_output=not no_output)
+        return
 
     source = os.path.join(directory, f"{problem}.cpp")
     if not os.path.exists(source):

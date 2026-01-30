@@ -44,17 +44,16 @@ def parse_codeforces_samples(html):
     samples = []
 
     # Find sample test section
-    sample_section = re.search(r'<div class="sample-test">(.*?)</div>\s*</div>', html, re.DOTALL)
-    if not sample_section:
+    start = html.find('<div class="sample-test">')
+    if start == -1:
         return samples
 
-    section = sample_section.group(1)
+    section = html[start:]
 
-    inputs = re.findall(r'<div class="input">.*?<pre>(.*?)</pre>', section, re.DOTALL)
-    outputs = re.findall(r'<div class="output">.*?<pre>(.*?)</pre>', section, re.DOTALL)
+    inputs = re.findall(r'<div class="input">.*?<pre[^>]*>(.*?)</pre>', section, re.DOTALL)
+    outputs = re.findall(r'<div class="output">.*?<pre[^>]*>(.*?)</pre>', section, re.DOTALL)
 
-    for i, (inp, out) in enumerate(zip(inputs, outputs)):
-        # Clean HTML tags and entities
+    for inp, out in zip(inputs, outputs):
         inp = clean_sample_text(inp)
         out = clean_sample_text(out)
         samples.append({'input': inp, 'output': out})
@@ -86,9 +85,11 @@ def parse_atcoder_samples(html):
 def clean_sample_text(text):
     """Clean HTML from sample text."""
     text = re.sub(r'<br\s*/?>', '\n', text)
+    text = re.sub(r'</div>', '\n', text)
     text = re.sub(r'<[^>]+>', '', text)
     text = text.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
-    text = text.strip('\n').rstrip()
+    text = re.sub(r'\n{2,}', '\n', text)
+    text = text.strip()
     return text
 
 def detect_platform(url):

@@ -25,13 +25,7 @@ __pycache__/
 *.o
 
 # Stress test artifacts
-sol
-brt
-gen
-chk
-in
-out
-out2
+_stress_*
 """
 
 def main():

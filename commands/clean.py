@@ -3,9 +3,9 @@
 Delete compiled binaries and build artifacts from contest directories.
 
 Usage:
-    python3 clean.py [directory]   # clean specific directory
-    python3 clean.py --all         # clean all platform directories
-    python3 clean.py               # clean current directory
+    cptools clean [directory]      # clean specific directory (non-recursive)
+    cptools clean -r [directory]   # clean directory recursively
+    cptools clean --all            # clean all platform directories (recursive)
 """
 import os
 import sys
@@ -48,15 +48,21 @@ def is_removable(filepath):
 
     return True
 
-def clean_directory(directory):
-    """Remove binaries and build artifacts from a directory tree."""
+def clean_directory(directory, recursive=False):
+    """Remove binaries and build artifacts from a directory."""
     removed = 0
-    for root, dirs, files in os.walk(directory):
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
+    if recursive:
+        entries = os.walk(directory)
+    else:
+        entries = [(directory, [], os.listdir(directory))]
+
+    for root, dirs, files in entries:
+        if recursive:
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
 
         for f in files:
             filepath = os.path.join(root, f)
-            if is_removable(filepath):
+            if os.path.isfile(filepath) and is_removable(filepath):
                 rel = os.path.relpath(filepath, ROOT_DIR)
                 try:
                     os.remove(filepath)
@@ -72,14 +78,16 @@ def main():
         for d in PLATFORM_DIRS:
             path = os.path.join(ROOT_DIR, d)
             if os.path.isdir(path):
-                total += clean_directory(path)
+                total += clean_directory(path, recursive=True)
         print(f"\n{Colors.BOLD}Removed {total} file(s).{Colors.ENDC}")
     else:
-        directory = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
+        recursive = '-r' in sys.argv
+        args = [a for a in sys.argv[1:] if a != '-r']
+        directory = args[0] if args else os.getcwd()
         if not os.path.isdir(directory):
             print(f"{Colors.FAIL}Error: {directory} is not a valid directory.{Colors.ENDC}")
             sys.exit(1)
-        removed = clean_directory(directory)
+        removed = clean_directory(directory, recursive=recursive)
         print(f"\n{Colors.BOLD}Removed {removed} file(s).{Colors.ENDC}")
 
 if __name__ == "__main__":
