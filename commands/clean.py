@@ -10,15 +10,13 @@ Usage:
 import os
 import sys
 
-from colors import Colors, get_repo_root
+from .common import Colors, get_repo_root, PLATFORM_DIRS
 
 ROOT_DIR = get_repo_root()
 
-PLATFORM_DIRS = ['training', 'Codeforces', 'VJudge', 'AtCoder', 'Other', 'summer']
-
 SAFE_FILES = {'LICENSE', 'Makefile', 'CNAME', 'README'}
 
-BUILD_EXTENSIONS = {'.out', '.o'}
+BUILD_EXTENSIONS = {'.out', '.o', '.in'}
 
 def is_removable(filepath):
     """Check if a file is a compiled binary or build artifact."""
@@ -32,7 +30,7 @@ def is_removable(filepath):
 
     _, ext = os.path.splitext(name)
 
-    # Build artifacts by extension
+    # Build artifacts and test files by extension
     if ext in BUILD_EXTENSIONS:
         return True
 

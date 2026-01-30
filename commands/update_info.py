@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from colors import Colors, get_repo_root
+from .common import Colors, get_repo_root, PLATFORM_DIRS
 
 def get_status_emoji(status):
     """Map status to emoji."""
@@ -76,10 +76,11 @@ def detect_platform_from_path(path):
     parts = Path(path).parts
 
     platform_map = {
-        'training': 'Training',
+        'Trainings': 'Trainings',
         'Codeforces': 'Codeforces',
-        'VJudge': 'VJudge',
+        'vJudge': 'vJudge',
         'AtCoder': 'AtCoder',
+        'Yosupo': 'Yosupo',
         'Other': 'Other',
     }
 
@@ -158,11 +159,13 @@ def generate_info_md(directory):
             content += f"**Contest**: [Codeforces]({contest_url})\n\n"
         elif 'vjudge.net' in first_link:
             contest_url = first_link.rsplit('#problem/', 1)[0]
-            content += f"**Contest**: [VJudge]({contest_url})\n\n"
+            content += f"**Contest**: [vJudge]({contest_url})\n\n"
         elif 'atcoder.jp' in first_link:
             match = re.search(r'atcoder\.jp/contests/([^/]+)', first_link)
             if match:
                 content += f"**Contest**: [AtCoder](https://atcoder.jp/contests/{match.group(1)})\n\n"
+        elif 'judge.yosupo.jp' in first_link:
+            content += f"**Judge**: [Yosupo Library Checker](https://judge.yosupo.jp)\n\n"
 
     # Add created date (from first problem or current time)
     created = problems[0]['created'] if problems[0]['created'] else datetime.now().strftime("%d-%m-%Y %H:%M:%S")
@@ -202,8 +205,6 @@ def generate_info_md(directory):
     print(f"{Colors.GREEN}✓ Progress: {solved_count}/{len(problems)} solved{Colors.ENDC}")
 
 ROOT_DIR = get_repo_root()
-
-PLATFORM_DIRS = ['training', 'Codeforces', 'VJudge', 'AtCoder', 'Other']
 
 def update_all():
     """Recursively update info.md for all contest directories in the repo."""

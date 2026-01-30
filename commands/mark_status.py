@@ -17,7 +17,7 @@ import os
 import sys
 import re
 
-from colors import Colors
+from .common import Colors
 
 VALID_STATUSES = ['AC', 'WA', 'TLE', 'MLE', 'RE', 'WIP', '~']
 
@@ -87,7 +87,7 @@ def main():
 
     if updated > 0:
         print(f"\n{Colors.BLUE}Updating info.md...{Colors.ENDC}")
-        from update_info import generate_info_md
+        from .update_info import generate_info_md
         generate_info_md(directory)
 
     print(f"\n{Colors.BOLD}Updated {updated}/{len(problems)} problem(s).{Colors.ENDC}")

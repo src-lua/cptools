@@ -7,14 +7,16 @@ from urllib.request import urlopen, Request
 from urllib.error import URLError
 import json
 
-from colors import Colors, get_repo_root
+from .common import Colors, get_repo_root
+from .config import load_config
 
-AUTHOR_NAME = "Lua"
-DEFAULT_GROUP_ID = "yc7Yxny414"
+_config = load_config()
+AUTHOR_NAME = _config["author"]
+DEFAULT_GROUP_ID = _config["default_group_id"]
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = get_repo_root()
-TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "template.cpp")
+TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "..", "template.cpp")
 
 def get_input(prompt, default=None):
     text = f"{Colors.BLUE}{prompt}{Colors.ENDC}"
@@ -43,7 +45,7 @@ def parse_contest_url(url):
     match = re.search(cf_group_pattern, url)
     if match:
         return {
-            'platform': 'training',
+            'platform': 'Trainings',
             'base_url': 'https://codeforces.com/group/{group_id}/contest/{id}/problem/{char}',
             'is_training': True,
             'group_id': match.group(1),
@@ -74,7 +76,7 @@ def parse_contest_url(url):
     match = re.search(vjudge_pattern, url)
     if match:
         return {
-            'platform': 'VJudge',
+            'platform': 'vJudge',
             'base_url': 'https://vjudge.net/contest/{id}#problem/{char}',
             'is_training': False,
             'contest_id': match.group(1),
@@ -104,7 +106,7 @@ def fetch_problem_names(config, contest_id):
             fetch_platform = judge
 
     try:
-        if fetch_platform in ['Codeforces', 'Codeforces/Gym', 'training']:
+        if fetch_platform in ['Codeforces', 'Codeforces/Gym', 'Trainings']:
             api_url = f"https://codeforces.com/api/contest.standings?contestId={contest_id}&from=1&count=1"
 
             req = Request(api_url)
@@ -144,8 +146,8 @@ def fetch_problem_names(config, contest_id):
 
             return problem_names
 
-        elif fetch_platform == 'VJudge':
-            print(f"{Colors.WARNING}VJudge auto-fetch not supported.{Colors.ENDC}")
+        elif fetch_platform == 'vJudge':
+            print(f"{Colors.WARNING}vJudge auto-fetch not supported.{Colors.ENDC}")
             return {}
 
     except (URLError, Exception) as e:
@@ -189,7 +191,7 @@ def get_platform_config():
     print("1. Training (CF Group)")
     print("2. Codeforces (Contest)")
     print("3. Codeforces Gym")
-    print("4. VJudge")
+    print("4. vJudge")
     print("5. AtCoder")
     print("6. Other")
 
@@ -197,7 +199,7 @@ def get_platform_config():
 
     config = {}
     if choice == '1':
-        config['platform'] = 'training'
+        config['platform'] = 'Trainings'
         config['base_url'] = 'https://codeforces.com/group/{group_id}/contest/{id}/problem/{char}'
         config['is_training'] = True
         config['default_range'] = None
@@ -212,7 +214,7 @@ def get_platform_config():
         config['is_training'] = False
         config['default_range'] = None
     elif choice == '4':
-        config['platform'] = 'VJudge'
+        config['platform'] = 'vJudge'
         config['base_url'] = 'https://vjudge.net/contest/{id}#problem/{char}'
         config['is_training'] = False
         config['default_range'] = None
@@ -227,7 +229,7 @@ def get_platform_config():
         config['default_range'] = None
 
         print(f"\n{Colors.BLUE}Which judge for problem links?{Colors.ENDC}")
-        print("1. VJudge")
+        print("1. vJudge")
         print("2. Codeforces Gym")
         print("3. Codeforces (Contest)")
         print("4. AtCoder")
@@ -237,7 +239,7 @@ def get_platform_config():
 
         if judge_choice == '1':
             config['base_url'] = 'https://vjudge.net/contest/{id}#problem/{char}'
-            config['judge'] = 'VJudge'
+            config['judge'] = 'vJudge'
         elif judge_choice == '2':
             config['base_url'] = 'https://codeforces.com/gym/{id}/problem/{char}'
             config['judge'] = 'Codeforces Gym'
@@ -385,7 +387,7 @@ def main():
         print(f"  {Colors.GREEN}+ Created {filename}{Colors.ENDC}")
 
     print(f"\n{Colors.BLUE}Generating info.md...{Colors.ENDC}")
-    from update_info import generate_info_md
+    from .update_info import generate_info_md
     generate_info_md(dest_dir)
 
     print(f"\n{Colors.BOLD}Setup complete!{Colors.ENDC}")

@@ -7,8 +7,8 @@ Usage:
 """
 import os
 import sys
-from colors import Colors
-from update_info import read_problem_info, get_status_emoji
+from .common import Colors
+from .update_info import read_problem_info, get_status_emoji
 
 def main():
     directory = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()

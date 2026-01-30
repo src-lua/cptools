@@ -22,3 +22,5 @@ def get_repo_root():
     except FileNotFoundError:
         pass
     return os.getcwd()
+
+PLATFORM_DIRS = ['Trainings', 'Codeforces', 'vJudge', 'AtCoder', 'Yosupo', 'Other']
