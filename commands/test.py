@@ -19,46 +19,12 @@ import subprocess
 
 from .common import Colors
 from .config import load_config
+from lib import find_samples, compile_from_config, next_test_index
 
 
 def eprint(*args, **kwargs):
     """Print to stderr so stdout redirection only captures solution output."""
     print(*args, file=sys.stderr, **kwargs)
-
-
-def find_samples(directory, problem):
-    """Find sample files like A_1.in, A_2.in, etc. Handles gaps in numbering."""
-    import re
-    pattern = re.compile(rf'^{re.escape(problem)}_(\d+)\.in$')
-    samples = []
-    for f in os.listdir(directory):
-        m = pattern.match(f)
-        if m:
-            num = int(m.group(1))
-            in_file = os.path.join(directory, f)
-            out_file = os.path.join(directory, f"{problem}_{num}.out")
-            samples.append({
-                'in': in_file,
-                'out': out_file if os.path.exists(out_file) else None,
-                'num': num,
-            })
-    samples.sort(key=lambda s: s['num'])
-    return samples
-
-def compile_solution(source, binary, config):
-    """Compile a C++ source file. Returns True on success."""
-    compiler = config["compiler"]
-    flags = config["compiler_flags"]
-    cmd = [compiler] + flags + [source, "-o", binary]
-
-    eprint(f"{Colors.BLUE}Compiling: {' '.join(cmd)}{Colors.ENDC}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        eprint(f"{Colors.FAIL}Compilation failed:{Colors.ENDC}")
-        eprint(result.stderr)
-        return False
-    return True
 
 def run_with_samples(binary, samples):
     """Run binary against sample test cases."""
@@ -106,13 +72,6 @@ def run_with_samples(binary, samples):
 
     eprint(f"\n{Colors.BOLD}{passed}/{total} passed.{Colors.ENDC}")
     return passed == total
-
-def next_test_index(directory, problem):
-    """Find the next available test index."""
-    i = 1
-    while os.path.exists(os.path.join(directory, f"{problem}_{i}.in")):
-        i += 1
-    return i
 
 
 def read_until_separator(label):
@@ -181,7 +140,11 @@ def main():
     config = load_config()
     binary = os.path.join(directory, f".{problem}")
 
-    if not compile_solution(source, binary, config):
+    eprint(f"{Colors.BLUE}Compiling...{Colors.ENDC}")
+    result = compile_from_config(source, binary, config)
+    if not result.success:
+        eprint(f"{Colors.FAIL}Compilation failed:{Colors.ENDC}")
+        eprint(result.stderr)
         sys.exit(1)
 
     try:

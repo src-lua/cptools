@@ -21,6 +21,7 @@ import subprocess
 
 from .common import Colors
 from .config import load_config
+from lib import compile_from_config
 
 TEMP_FILES = ['_stress_sol', '_stress_brt', '_stress_gen', '_stress_chk',
               '_stress_in', '_stress_out', '_stress_out2']
@@ -30,19 +31,6 @@ def cleanup():
     for f in TEMP_FILES:
         if os.path.exists(f):
             os.remove(f)
-
-def compile_file(source_cpp, binary, config):
-    """Compile a C++ file. Returns True on success."""
-    compiler = config["compiler"]
-    flags = config["compiler_flags"]
-    cmd = [compiler] + flags + [source_cpp, "-o", binary]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"{Colors.FAIL}Compilation failed for {source_cpp}:{Colors.ENDC}")
-        print(result.stderr)
-        return False
-    return True
 
 def main():
     if len(sys.argv) < 4:
@@ -94,7 +82,10 @@ def main():
             print(f"{Colors.FAIL}Error: {src} not found.{Colors.ENDC}")
             cleanup()
             sys.exit(1)
-        if not compile_file(src, binary, config):
+        result = compile_from_config(src, binary, config)
+        if not result.success:
+            print(f"{Colors.FAIL}Compilation failed for {src}:{Colors.ENDC}")
+            print(result.stderr)
             cleanup()
             sys.exit(1)
 

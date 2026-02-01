@@ -15,38 +15,11 @@ Valid statuses: AC, WA, TLE, MLE, RE, WIP, ~ (reset to pending)
 """
 import os
 import sys
-import re
 
 from .common import Colors
+from lib import parse_problem_range, update_problem_status
 
 VALID_STATUSES = ['AC', 'WA', 'TLE', 'MLE', 'RE', 'WIP', '~']
-
-def parse_problems(input_str):
-    input_str = input_str.upper()
-    if '~' in input_str:
-        parts = input_str.split('~')
-        if len(parts) == 2 and len(parts[0].strip()) == 1 and len(parts[1].strip()) == 1:
-            start = ord(parts[0].strip())
-            end = ord(parts[1].strip())
-            return [chr(i) for i in range(start, end + 1)]
-    return input_str.replace(',', ' ').split()
-
-def update_status(filepath, new_status):
-    with open(filepath, 'r') as f:
-        content = f.read()
-
-    pattern = r'(\* Status:\s*)([^\n]*)'
-    match = re.search(pattern, content)
-    if not match:
-        return False
-
-    old_status = match.group(2).strip()
-    updated = re.sub(pattern, rf'\g<1>{new_status}', content)
-
-    with open(filepath, 'w') as f:
-        f.write(updated)
-
-    return old_status
 
 def main():
     if len(sys.argv) < 2:
@@ -69,7 +42,7 @@ def main():
         print(f"{Colors.WARNING}Warning: '{new_status}' is not a standard status.{Colors.ENDC}")
         print(f"  Standard: {', '.join(VALID_STATUSES)}")
 
-    problems = parse_problems(problem_input)
+    problems = parse_problem_range(problem_input.upper())
 
     updated = 0
     for p in problems:
@@ -78,8 +51,8 @@ def main():
             print(f"  {Colors.WARNING}! {p}.cpp not found{Colors.ENDC}")
             continue
 
-        old_status = update_status(filepath, new_status)
-        if old_status is False:
+        old_status = update_problem_status(filepath, new_status)
+        if old_status is None:
             print(f"  {Colors.WARNING}! {p}.cpp has no Status header{Colors.ENDC}")
         else:
             print(f"  {Colors.GREEN}+ {p}: {old_status} -> {new_status}{Colors.ENDC}")

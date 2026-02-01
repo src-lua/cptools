@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .common import Colors, get_repo_root, PLATFORM_DIRS
+from lib.fileops import read_problem_header
 
 def get_status_emoji(status):
     """Map status to emoji."""
@@ -42,34 +43,6 @@ def get_status_emoji(status):
     # Not solved / Unsolved
     else:
         return '❌'
-
-def read_problem_info(filepath):
-    """Extract problem information from C++ file header."""
-    try:
-        with open(filepath, 'r') as f:
-            content = f.read(500)  # Read first 500 chars (header should be there)
-
-        info = {
-            'problem': None,
-            'link': None,
-            'status': '~',
-            'created': None
-        }
-
-        for line in content.split('\n'):
-            if 'Problem:' in line:
-                info['problem'] = line.split('Problem:')[1].strip().replace('*/', '').strip()
-            elif 'Link:' in line:
-                info['link'] = line.split('Link:')[1].strip().replace('*/', '').strip()
-            elif 'Status:' in line:
-                info['status'] = line.split('Status:')[1].strip().replace('*/', '').strip()
-            elif 'Created:' in line:
-                info['created'] = line.split('Created:')[1].strip().replace('*/', '').strip()
-
-        return info
-    except Exception as e:
-        print(f"{Colors.WARNING}Could not read {filepath}: {e}{Colors.ENDC}")
-        return None
 
 def detect_platform_from_path(path):
     """Detect contest platform from directory structure."""
@@ -124,14 +97,17 @@ def generate_info_md(directory):
     problems = []
     for cpp_file in cpp_files:
         filepath = os.path.join(directory, cpp_file)
-        info = read_problem_info(filepath)
+        header = read_problem_header(filepath)
 
-        if info:
+        if header:
             char = cpp_file.replace('.cpp', '')
             problems.append({
                 'char': char,
                 'file': cpp_file,
-                **info
+                'problem': header.problem,
+                'link': header.link,
+                'status': header.status,
+                'created': header.created
             })
 
     if not problems:

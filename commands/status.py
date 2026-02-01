@@ -8,7 +8,8 @@ Usage:
 import os
 import sys
 from .common import Colors
-from .update import read_problem_info, get_status_emoji
+from .update import get_status_emoji
+from lib.fileops import read_problem_header
 
 def main():
     directory = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
@@ -26,19 +27,19 @@ def main():
     problems = []
     for cpp_file in cpp_files:
         filepath = os.path.join(directory, cpp_file)
-        info = read_problem_info(filepath)
-        if not info:
+        header = read_problem_header(filepath)
+        if not header:
             continue
 
-        status = info['status'].upper().strip()
+        status = header.status.upper().strip()
         if status in ['~', '']:
             status = '~'
         counts[status] = counts.get(status, 0) + 1
 
         char = cpp_file.replace('.cpp', '')
-        emoji = get_status_emoji(info['status'])
-        name = info['problem'] if info['problem'] else char
-        problems.append((char, emoji, info['status'], name))
+        emoji = get_status_emoji(header.status)
+        name = header.problem if header.problem else char
+        problems.append((char, emoji, header.status, name))
 
     total = len(problems)
     ac = counts.get('AC', 0) + counts.get('SOLVED', 0) + counts.get('ACCEPTED', 0)

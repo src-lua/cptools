@@ -14,15 +14,7 @@ import sys
 import subprocess
 
 from .common import Colors
-from .update import read_problem_info
-
-def find_file_ci(directory, target):
-    """Find a file in directory with case-insensitive matching."""
-    target_lower = target.lower()
-    for f in os.listdir(directory):
-        if f.lower() == target_lower:
-            return f
-    return None
+from lib.fileops import read_problem_header, find_file_case_insensitive
 
 def main():
     if len(sys.argv) < 2:
@@ -33,7 +25,7 @@ def main():
     directory = sys.argv[2] if len(sys.argv) > 2 else os.getcwd()
 
     filename = problem if problem.endswith('.cpp') else f"{problem}.cpp"
-    match = find_file_ci(directory, filename)
+    match = find_file_case_insensitive(directory, filename)
     if match:
         filepath = os.path.join(directory, match)
         filename = match
@@ -41,12 +33,12 @@ def main():
         print(f"{Colors.FAIL}Error: {filename} not found.{Colors.ENDC}")
         sys.exit(1)
 
-    info = read_problem_info(filepath)
-    if not info or not info.get('link'):
+    header = read_problem_header(filepath)
+    if not header or not header.link:
         print(f"{Colors.FAIL}Error: no Link found in {filename} header.{Colors.ENDC}")
         sys.exit(1)
 
-    url = info['link']
+    url = header.link
     print(f"{Colors.BLUE}Opening {url}{Colors.ENDC}")
 
     try:
