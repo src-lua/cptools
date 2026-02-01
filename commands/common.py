@@ -23,4 +23,4 @@ def get_repo_root():
         pass
     return os.getcwd()
 
-PLATFORM_DIRS = ['Trainings', 'Codeforces', 'vJudge', 'AtCoder', 'Yosupo', 'Other']
+PLATFORM_DIRS = ['Trainings', 'Codeforces', 'vJudge', 'AtCoder', 'Yosupo', 'CSES', 'Other']

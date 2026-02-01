@@ -5,6 +5,12 @@ __pycache__/
 dist/
 build/
 
+# Claude Code settings and notes
+.claude/
+
 # Compiled binaries from contest solutions
 *.out
 *.o
+
+# Generated hash files
+*.hashed

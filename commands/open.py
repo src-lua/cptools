@@ -14,7 +14,7 @@ import sys
 import subprocess
 
 from .common import Colors
-from .update_info import read_problem_info
+from .update import read_problem_info
 
 def find_file_ci(directory, target):
     """Find a file in directory with case-insensitive matching."""

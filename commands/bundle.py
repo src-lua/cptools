@@ -137,13 +137,13 @@ def main():
         if idx + 1 < len(sys.argv):
             output_file = sys.argv[idx + 1]
         else:
-            print(f"{Colors.FAIL}Error: -o requires a filename.{Colors.ENDC}")
+            print(f"{Colors.FAIL}Error: -o requires a filename.{Colors.ENDC}", file=sys.stderr)
             sys.exit(1)
 
     source = os.path.join(os.getcwd(), f"{problem}.cpp")
 
     if not os.path.exists(source):
-        print(f"{Colors.FAIL}Error: {problem}.cpp not found.{Colors.ENDC}")
+        print(f"{Colors.FAIL}Error: {problem}.cpp not found.{Colors.ENDC}", file=sys.stderr)
         sys.exit(1)
 
     config = load_config()
@@ -155,16 +155,16 @@ def main():
     if inplace:
         with open(source, 'w') as f:
             f.write(output)
-        print(f"{Colors.GREEN}Bundled in-place: {problem}.cpp{Colors.ENDC}")
+        print(f"{Colors.GREEN}Bundled in-place: {problem}.cpp{Colors.ENDC}", file=sys.stderr)
     elif output_file:
         with open(output_file, 'w') as f:
             f.write(output)
-        print(f"{Colors.GREEN}Bundled to {output_file}{Colors.ENDC}")
+        print(f"{Colors.GREEN}Bundled to {output_file}{Colors.ENDC}", file=sys.stderr)
     else:
         if copy_to_clipboard(output):
-            print(f"{Colors.GREEN}Bundled and copied to clipboard!{Colors.ENDC}")
+            print(f"{Colors.GREEN}Bundled and copied to clipboard!{Colors.ENDC}", file=sys.stderr)
         else:
-            print(output)
+            print(output)  # Bundled code goes to stdout for redirection
             print(f"\n{Colors.WARNING}Could not copy to clipboard (install xclip or xsel).{Colors.ENDC}",
                   file=sys.stderr)
 

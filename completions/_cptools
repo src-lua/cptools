@@ -26,6 +26,7 @@ _cptools() {
                 'config:Edit configuration'
                 'commit:Commit and push changes'
                 'bundle:Bundle includes and copy to clipboard'
+                'hash:Hash file lines with context awareness'
             )
             _describe 'command' commands
             ;;
@@ -95,6 +96,11 @@ _cptools() {
                         '1:problem:_files -g "*.cpp(.:r)"' \
                         '-o[Output file]:file:_files -g "*.cpp"' \
                         '-i[Bundle in-place]'
+                    ;;
+                hash)
+                    _arguments \
+                        '1:problem:_files -g "*.cpp(.:r)"' \
+                        '(-s --save)'{-s,--save}'[Save output to file]'
                     ;;
             esac
             ;;

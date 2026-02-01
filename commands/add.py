@@ -106,6 +106,19 @@ def parse_problem_url(url):
             'fetch_platform': 'yosupo',
         }
 
+    # CSES: cses.fi/problemset/task/1636
+    match = re.search(r'cses\.fi/problemset/task/(\d+)', url)
+    if match:
+        problem_id = match.group(1)
+        return {
+            'platform_dir': 'CSES',
+            'contest_id': 'problemset',
+            'letter': problem_id,
+            'filename': problem_id,
+            'link': url,
+            'fetch_platform': 'cses',
+        }
+
     return None
 
 def fetch_problem_name(info):
@@ -134,6 +147,16 @@ def fetch_problem_name(info):
         elif info['fetch_platform'] == 'yosupo':
             # Yosupo problem names are the URL slug (e.g., "unionfind")
             return info['filename'].replace('_', ' ').title()
+        elif info['fetch_platform'] == 'cses':
+            # CSES: parse the problem title from HTML
+            req = Request(info['link'])
+            req.add_header('User-Agent', 'Mozilla/5.0')
+            with urlopen(req, timeout=10) as response:
+                html = response.read().decode('utf-8')
+            # Extract title from <title>CSES - Problem Title</title>
+            match = re.search(r'<title>CSES - ([^<]+)</title>', html)
+            if match:
+                return match.group(1).strip()
     except Exception:
         pass
     return None
@@ -143,7 +166,7 @@ def add_from_url(url):
     info = parse_problem_url(url)
     if not info:
         print(f"{Colors.FAIL}Error: could not parse URL.{Colors.ENDC}")
-        print(f"  Supported: codeforces.com, atcoder.jp")
+        print(f"  Supported: codeforces.com, atcoder.jp, cses.fi")
         sys.exit(1)
 
     if not os.path.exists(TEMPLATE_PATH):
@@ -234,7 +257,7 @@ def main():
     if link:
         print(f"{Colors.BLUE}  Inherited link from {base_letter}.cpp{Colors.ENDC}")
 
-    from .update_info import generate_info_md
+    from .update import generate_info_md
     generate_info_md(directory)
 
 if __name__ == "__main__":

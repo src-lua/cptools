@@ -387,7 +387,7 @@ def main():
         print(f"  {Colors.GREEN}+ Created {filename}{Colors.ENDC}")
 
     print(f"\n{Colors.BLUE}Generating info.md...{Colors.ENDC}")
-    from .update_info import generate_info_md
+    from .update import generate_info_md
     generate_info_md(dest_dir)
 
     print(f"\n{Colors.BOLD}Setup complete!{Colors.ENDC}")

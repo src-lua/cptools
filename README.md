@@ -4,6 +4,8 @@ CLI toolkit for managing competitive programming contests and solutions.
 
 Supports Codeforces, AtCoder, vJudge, and custom judges.
 
+> **⚠️ Beta Software**: cptools is currently in beta (pre-1.0). Breaking changes may occur between versions. Check the commit history or issues for recent changes.
+
 ## Installation
 
 ```bash

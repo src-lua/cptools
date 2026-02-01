@@ -24,6 +24,9 @@ __pycache__/
 *.out
 *.o
 
+# Generated hash files
+*.hashed
+
 # Stress test artifacts
 _stress_*
 """

@@ -17,17 +17,18 @@ from urllib.request import urlopen, Request
 from urllib.error import URLError
 
 from .common import Colors
-from .update_info import read_problem_info
+from .update import read_problem_info
 
 def parse_problems(input_str):
     """Parse problem range (A~E) or list (A B C)."""
-    input_str = input_str.upper()
     if '~' in input_str:
         parts = input_str.split('~')
         if len(parts) == 2 and len(parts[0].strip()) == 1 and len(parts[1].strip()) == 1:
-            start = ord(parts[0].strip())
-            end = ord(parts[1].strip())
+            # Only uppercase for single-letter ranges
+            start = ord(parts[0].strip().upper())
+            end = ord(parts[1].strip().upper())
             return [chr(i) for i in range(start, end + 1)]
+    # Preserve original case for non-range inputs
     return input_str.replace(',', ' ').split()
 
 def fetch_html(url):
@@ -82,6 +83,25 @@ def parse_atcoder_samples(html):
 
     return samples
 
+def parse_cses_samples(html):
+    """Parse sample tests from a CSES problem page."""
+    samples = []
+
+    # CSES uses <p>Input:</p> followed by <pre>...</pre>
+    # Then <p>Output:</p> followed by <pre>...</pre>
+    input_pattern = r'<p>Input:</p>\s*<pre>(.*?)</pre>'
+    output_pattern = r'<p>Output:</p>\s*<pre>(.*?)</pre>'
+
+    inputs = re.findall(input_pattern, html, re.DOTALL)
+    outputs = re.findall(output_pattern, html, re.DOTALL)
+
+    for inp, out in zip(inputs, outputs):
+        inp = clean_sample_text(inp)
+        out = clean_sample_text(out)
+        samples.append({'input': inp, 'output': out})
+
+    return samples
+
 def clean_sample_text(text):
     """Clean HTML from sample text."""
     text = re.sub(r'<br\s*/?>', '\n', text)
@@ -100,6 +120,8 @@ def detect_platform(url):
         return 'atcoder'
     elif 'judge.yosupo.jp' in url:
         return 'yosupo'
+    elif 'cses.fi' in url:
+        return 'cses'
     return None
 
 def fetch_samples(url):
@@ -120,6 +142,8 @@ def fetch_samples(url):
         return parse_codeforces_samples(html), None
     elif platform == 'atcoder':
         return parse_atcoder_samples(html), None
+    elif platform == 'cses':
+        return parse_cses_samples(html), None
 
     return None, "Unknown platform"
 
