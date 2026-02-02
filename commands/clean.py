@@ -1,52 +1,26 @@
 #!/usr/bin/env python3
 """
+Usage: cptools clean [directory] [options]
+
 Delete compiled binaries and build artifacts from contest directories.
 
-Usage:
-    cptools clean [directory]      # clean specific directory (non-recursive)
-    cptools clean -r [directory]   # clean directory recursively
-    cptools clean --all            # clean all platform directories (recursive)
+Options:
+  -r            Recursive clean (subdirectories)
+  --all         Clean all platform directories in the repo
+
+Examples:
+  cptools clean
+  cptools clean -r
+  cptools clean --all
 """
 import os
 import sys
+import argparse
 
-from .common import Colors, get_repo_root, PLATFORM_DIRS
+from lib.fileops import is_removable, get_repo_root, PLATFORM_DIRS
+from lib.io import error, bold
 
 ROOT_DIR = get_repo_root()
-
-SAFE_FILES = {'LICENSE', 'Makefile', 'CNAME', 'README'}
-
-BUILD_EXTENSIONS = {'.out', '.o', '.in'}
-
-def is_removable(filepath):
-    """Check if a file is a compiled binary or build artifact."""
-    name = os.path.basename(filepath)
-
-    if name.startswith('_') or name.startswith('.'):
-        return False
-
-    if name in SAFE_FILES:
-        return False
-
-    _, ext = os.path.splitext(name)
-
-    # Build artifacts and test files by extension
-    if ext in BUILD_EXTENSIONS:
-        return True
-
-    # Extensionless binary detection
-    if ext != '':
-        return False
-
-    try:
-        with open(filepath, 'rb') as f:
-            header = f.read(2)
-            if header == b'#!':
-                return False
-    except (IOError, OSError):
-        pass
-
-    return True
 
 def clean_directory(directory, recursive=False):
     """Remove binaries and build artifacts from a directory."""
@@ -66,29 +40,38 @@ def clean_directory(directory, recursive=False):
                 rel = os.path.relpath(filepath, ROOT_DIR)
                 try:
                     os.remove(filepath)
-                    print(f"  {Colors.FAIL}- {rel}{Colors.ENDC}")
+                    from lib.io import log
+                    log(f"  - {rel}")
                     removed += 1
                 except OSError as e:
-                    print(f"  Error deleting {rel}: {e}")
+                    from lib.io import log
+                    log(f"  Error deleting {rel}: {e}")
     return removed
 
-def main():
-    if len(sys.argv) > 1 and sys.argv[1] == '--all':
+def get_parser():
+    """Creates and returns the argparse parser for the clean command."""
+    parser = argparse.ArgumentParser(description="Delete compiled binaries and build artifacts from contest directories.")
+    parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory (default: current)')
+    parser.add_argument('-r', action='store_true', help='Recursive clean (subdirectories)')
+    parser.add_argument('--all', action='store_true', help='Clean all platform directories in the repo')
+    return parser
+
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
+
+    if args.all:
         total = 0
         for d in PLATFORM_DIRS:
             path = os.path.join(ROOT_DIR, d)
             if os.path.isdir(path):
                 total += clean_directory(path, recursive=True)
-        print(f"\n{Colors.BOLD}Removed {total} file(s).{Colors.ENDC}")
+        bold(f"\nRemoved {total} file(s).")
     else:
-        recursive = '-r' in sys.argv
-        args = [a for a in sys.argv[1:] if a != '-r']
-        directory = args[0] if args else os.getcwd()
+        recursive = args.r
+        directory = args.directory
         if not os.path.isdir(directory):
-            print(f"{Colors.FAIL}Error: {directory} is not a valid directory.{Colors.ENDC}")
+            error(f"Error: {directory} is not a valid directory.")
             sys.exit(1)
         removed = clean_directory(directory, recursive=recursive)
-        print(f"\n{Colors.BOLD}Removed {removed} file(s).{Colors.ENDC}")
-
-if __name__ == "__main__":
-    main()
+        bold(f"\nRemoved {removed} file(s).")

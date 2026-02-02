@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 """
+Usage: cptools fetch <problem> [directory]
+
 Fetch sample test cases from online judges.
+Reads the Link from the problem's .cpp header and fetches sample inputs/outputs.
 
-Usage:
-    cptools fetch <problem> [directory]
-    cptools fetch A~E [directory]
+Arguments:
+  problem       Problem ID or range (e.g. A, A~E)
+  directory     Target directory (default: current)
 
-Reads the Link from the problem's .cpp header and fetches sample
-inputs/outputs, saving them as A1.in, A1.out, A2.in, A2.out, etc.
-Supports Codeforces and AtCoder.
+Examples:
+  cptools fetch A
+  cptools fetch A~E
 """
 import os
 import sys
+import argparse
 
-from .common import Colors
 from lib import parse_problem_range, read_problem_header, save_samples, detect_judge
+from lib.io import success, warning, header, bold, log
 
 def fetch_problem(problem, directory):
     """Fetch samples for a single problem."""
@@ -22,55 +26,52 @@ def fetch_problem(problem, directory):
     filepath = os.path.join(directory, filename)
 
     if not os.path.exists(filepath):
-        print(f"  {Colors.WARNING}! {filename} not found{Colors.ENDC}")
+        warning(f"  ! {filename} not found")
         return False
 
     info = read_problem_header(filepath)
     if not info or not info.link:
-        print(f"  {Colors.WARNING}! {filename} has no Link{Colors.ENDC}")
+        warning(f"  ! {filename} has no Link")
         return False
 
     url = info.link
     judge = detect_judge(url)
     if not judge:
-        print(f"  {Colors.WARNING}! Unsupported platform for {filename}{Colors.ENDC}")
+        warning(f"  ! Unsupported platform for {filename}")
         return False
 
     samples = judge.fetch_samples(url)
     if not samples:
-        print(f"  {Colors.WARNING}! No samples found for {filename}{Colors.ENDC}")
+        warning(f"  ! No samples found for {filename}")
         return False
 
     # Convert SampleTest objects to dict format for save_samples
     samples_dict = [{'input': s.input, 'output': s.output} for s in samples]
     count = save_samples(directory, problem, samples_dict)
-    print(f"  {Colors.GREEN}+ {problem}: {count} sample(s) saved{Colors.ENDC}")
+    success(f"  + {problem}: {count} sample(s) saved")
     return True
 
-def main():
-    if len(sys.argv) < 2:
-        print(f"{Colors.FAIL}Usage: cptools fetch <problem(s)> [directory]{Colors.ENDC}")
-        print(f"  Examples: cptools fetch A, cptools fetch A~E")
-        sys.exit(1)
+def get_parser():
+    """Creates and returns the argparse parser for the fetch command."""
+    parser = argparse.ArgumentParser(description="Fetch sample test cases from online judges.")
+    parser.add_argument('problem', help='Problem ID or range (e.g. A, A~E)')
+    parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory (default: current)')
+    return parser
 
-    problem_input = sys.argv[1]
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
 
-    # Detect if argv[2] is a directory
-    if len(sys.argv) > 2 and os.path.isdir(sys.argv[2]):
-        directory = sys.argv[2]
-    else:
-        directory = os.getcwd()
+    directory = args.directory
+    problems = parse_problem_range(args.problem)
 
-    problems = parse_problem_range(problem_input)
-
-    print(f"{Colors.HEADER}--- Fetching Samples ---{Colors.ENDC}\n")
+    header("--- Fetching Samples ---")
+    log("")  # blank line
 
     fetched = 0
     for p in problems:
         if fetch_problem(p, directory):
             fetched += 1
 
-    print(f"\n{Colors.BOLD}Fetched {fetched}/{len(problems)} problem(s).{Colors.ENDC}")
+    bold(f"\nFetched {fetched}/{len(problems)} problem(s).")
 
-if __name__ == "__main__":
-    main()

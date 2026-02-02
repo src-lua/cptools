@@ -6,7 +6,7 @@ and other headers across all platform APIs.
 """
 import json
 from urllib.request import Request, urlopen
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
 
 
 # Standard headers used across all HTTP requests
@@ -30,24 +30,34 @@ def fetch_url(url, timeout=15, headers=None):
         Response text decoded as UTF-8
 
     Raises:
-        URLError: On network errors or HTTP errors
+        PlatformError: On network errors or HTTP errors
 
     Examples:
         >>> content = fetch_url("https://example.com")
         >>> content = fetch_url("https://api.example.com", timeout=10)
     """
-    req = Request(url)
+    # Import here to avoid circular dependency
+    from . import PlatformError
 
-    # Apply default headers
-    final_headers = DEFAULT_HEADERS.copy()
-    if headers:
-        final_headers.update(headers)
+    try:
+        req = Request(url)
 
-    for key, value in final_headers.items():
-        req.add_header(key, value)
+        # Apply default headers
+        final_headers = DEFAULT_HEADERS.copy()
+        if headers:
+            final_headers.update(headers)
 
-    with urlopen(req, timeout=timeout) as response:
-        return response.read().decode('utf-8')
+        for key, value in final_headers.items():
+            req.add_header(key, value)
+
+        with urlopen(req, timeout=timeout) as response:
+            return response.read().decode('utf-8')
+    except HTTPError as e:
+        raise PlatformError(f"HTTP error {e.code} fetching {url}: {e.reason}") from e
+    except URLError as e:
+        raise PlatformError(f"Network error fetching {url}: {e.reason}") from e
+    except Exception as e:
+        raise PlatformError(f"Unexpected error fetching {url}: {e}") from e
 
 
 def fetch_json(url, timeout=10, headers=None):
@@ -63,11 +73,18 @@ def fetch_json(url, timeout=10, headers=None):
         Parsed JSON as dict/list
 
     Raises:
-        URLError: On network errors
-        json.JSONDecodeError: If response is not valid JSON
+        PlatformError: On network errors or JSON parsing errors
 
     Examples:
         >>> data = fetch_json("https://api.example.com/data")
     """
-    content = fetch_url(url, timeout, headers)
-    return json.loads(content)
+    from . import PlatformError
+
+    try:
+        content = fetch_url(url, timeout, headers)
+        return json.loads(content)
+    except json.JSONDecodeError as e:
+        raise PlatformError(f"Invalid JSON response from {url}: {e}") from e
+    except PlatformError:
+        # Re-raise PlatformError from fetch_url
+        raise

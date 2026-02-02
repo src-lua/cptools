@@ -1,413 +1,116 @@
 # Contributing to CPTools
 
-Thank you for your interest in contributing to CPTools! This document provides guidelines and best practices for contributing to the project.
-
-## Table of Contents
-
-- [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
-- [Adding a New Command](#adding-a-new-command)
-- [Code Style Guidelines](#code-style-guidelines)
-- [Output Standards](#output-standards)
-- [Testing](#testing)
-- [Submitting Changes](#submitting-changes)
+Thank you for your interest in contributing to CPTools! We welcome contributions from everyone. This guide will help you get started.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Python 3.6+
-- g++ compiler for C++ solutions
+- `g++` compiler
 - Git
-- Zsh (for autocomplete development)
 
-### Setting Up Development Environment
+### Setup
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd cptools
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/src-lua/cptools.git
+    cd cptools
+    ```
 
-2. Install in development mode:
-   ```bash
-   ./install.sh
-   ```
+2.  **Install in development mode:**
+    ```bash
+    ./install.sh
+    ```
+    This will install the tool and make your local changes available immediately.
 
-3. Test your installation:
-   ```bash
-   cptools --help
-   ```
+3.  **Test your installation:**
+    ```bash
+    cptools --help
+    ```
 
-## Project Structure
+## How to Contribute
 
-```
-cptools/
-├── cptools                    # Main dispatcher script
-├── commands/                  # Command implementations
-│   ├── __init__.py
-│   ├── common.py             # Shared utilities and Colors
-│   ├── config.py             # Configuration management
-│   ├── add.py                # Individual command files
-│   ├── test.py
-│   └── ...
-├── completions/              # Shell autocomplete
-│   └── _cptools              # Zsh completion script
-├── template.cpp              # C++ template file
-├── install.sh                # Installation script
-└── CONTRIBUTING.md           # This file - contribution guidelines
-```
+### 1. Find or Propose an Issue
 
-## Adding a New Command
+-   **Find an existing issue:** Check the [issue tracker](https://github.com/your-username/cptools/issues) for bugs or features to work on. Look for issues tagged `good first issue` if you're new.
+-   **Propose a new feature:** If you have an idea, please [open an issue](https://github.com/your-username/cptools/issues/new) to discuss it first.
 
-### 1. Create the Command File
+### 2. Make Your Changes
 
-Create a new file in `commands/<name>.py`:
+1.  **Create a new branch:**
+    ```bash
+    git checkout -b feature/my-new-feature
+    ```
 
+2.  **Write your code.** Follow the guidelines below when making changes.
+
+3.  **Test your changes:**
+    - Run automated tests: `pytest`
+    - Manually test your changes to ensure they work as expected.
+
+### 3. Submit a Pull Request
+
+1.  **Commit your changes** with a clear message:
+    ```bash
+    git commit -m "feat: Add new command for hashing"
+    ```
+    We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+2.  **Push to your branch:**
+    ```bash
+    git push origin feature/my-new-feature
+    ```
+
+3.  **Open a Pull Request** on GitHub.
+
+## Development Guidelines
+
+### Adding a New Command
+
+If you're adding a new command, follow this checklist:
+
+-   [ ] Create a new file `commands/<name>.py`.
+-   [ ] Implement `get_parser()` and `run()` functions.
+-   [ ] Register the command in the `__init__.py` on commands folder.
+-   [ ] Add generated files to `.gitignore` and `commands/init.py` if needed.
+-   [ ] Add tests for the new command in `tests/test_cmd_<name>.py`.
+
+For a detailed example, look at existing commands like `commands/hash.py`.
+
+### Code Style
+
+-   Follow **PEP 8** conventions.
+-   Use clear, meaningful variable names.
+-   Keep functions small and focused.
+
+### Output: STDERR vs. STDOUT
+
+A critical rule for this project is to separate logging from data output.
+
+-   **Use `sys.stderr` for:** logs, status messages, progress indicators, errors, and any colored or formatted text.
+-   **Use `sys.stdout` (the default for `print()`) for:** raw data that can be redirected or piped to another command.
+
+**Good Example:**
 ```python
-#!/usr/bin/env python3
-"""
-Brief description of the command.
-
-Usage:
-    cptools <name> <args> [options]
-
-Examples:
-    cptools <name> A
-    cptools <name> A --option
-"""
-import os
 import sys
+from lib.io import error, success
 
-from .common import Colors
+# Log to stderr
+print("Starting process...", file=sys.stderr)
 
-def main():
-    """Main function called by dispatcher."""
-    # 1. Help handling
-    if len(sys.argv) < 2 or sys.argv[1] in ['-h', '--help']:
-        print(f"{Colors.BOLD}Usage:{Colors.ENDC} cptools <name> <args>")
-        print(f"\n<Description>")
-        print(f"\n{Colors.BOLD}Examples:{Colors.ENDC}")
-        print(f"  cptools <name> A")
-        sys.exit(0 if len(sys.argv) > 1 else 1)
+# Output data to stdout
+print("This is the result.")
 
-    # 2. Argument parsing
-    # 3. Validation
-    # 4. Processing
-    # 5. Output
-
-if __name__ == "__main__":
-    main()
+# Use helpers for colored output to stderr
+success("Process completed successfully!")
+error("Something went wrong.")
 ```
-
-### 2. Register in Dispatcher
-
-Add your command to `cptools`:
-
-```python
-# In COMMANDS dictionary
-COMMANDS = {
-    '<name>': 'Brief description      (e.g. cptools <name> A)',
-}
-
-# In main() function
-elif command == '<name>':
-    from commands import <name>
-    <name>.main()
-```
-
-### 3. Add Autocomplete
-
-Update `completions/_cptools`:
-
-```zsh
-# In commands list
-commands=(
-    '<name>:Brief description'
-)
-
-# In args section
-<name>)
-    _arguments \
-        '1:problem:_files -g "*.cpp(.:r)"' \
-        '(-o --option)'{-o,--option}'[Description]'
-    ;;
-```
-
-### 4. Update .gitignore (if needed)
-
-If your command generates files, add the pattern to `.gitignore`:
-
-```gitignore
-# Generated by cptools <name>
-*.extension
-```
-
-Also update `commands/init.py` to include it in the template `.gitignore`.
-
-## Code Style Guidelines
-
-### Python Style
-
-- Follow PEP 8 conventions
-- Use meaningful variable names
-- Add docstrings to functions
-- Keep functions focused and small
-- Use type hints when beneficial
-
-### Import Order
-
-```python
-# 1. Standard library
-import os
-import sys
-import subprocess
-
-# 2. Local modules
-from .common import Colors
-from .config import load_config
-```
-
-## Output Standards
-
-### Critical Rule: Separate Logs from Data
-
-**Use STDERR for:**
-- Status messages, progress indicators
-- Error messages
-- Visual feedback (colors, emojis)
-- Headers and formatting
-
-**Use STDOUT for:**
-- Data that users may want to redirect
-- Processing results
-- Output consumed by other programs
-
-### Good Examples
-
-```python
-# ✓ GOOD: Logs to stderr, data to stdout
-print(f"{Colors.HEADER}--- Processing ---{Colors.ENDC}\n", file=sys.stderr)
-print(f"  {Colors.BOLD}file.cpp{Colors.ENDC}", file=sys.stderr)
-print(data_output)  # Goes to stdout - can be redirected
-
-# ✓ GOOD: Using helper function
-def eprint(*args, **kwargs):
-    """Print to stderr."""
-    print(*args, file=sys.stderr, **kwargs)
-
-eprint(f"{Colors.GREEN}✓ Done{Colors.ENDC}")
-```
-
-### Visual Feedback Pattern
-
-Use this consistent pattern for user feedback:
-
-```python
-print(f"{Colors.HEADER}--- Operation Name ---{Colors.ENDC}\n", file=sys.stderr)
-print(f"  {Colors.BOLD}filename.cpp{Colors.ENDC}", file=sys.stderr)
-print(file=sys.stderr)
-
-# ... processing ...
-
-print(f"{Colors.GREEN}✓ Operation completed{Colors.ENDC}", file=sys.stderr)
-```
-
-### Error Handling
-
-```python
-# Always print errors to stderr
-if not os.path.exists(filepath):
-    print(f"{Colors.FAIL}Error: {filepath} not found{Colors.ENDC}", file=sys.stderr)
-    sys.exit(1)
-
-try:
-    # operation
-except Exception as e:
-    print(f"{Colors.FAIL}Error: {str(e)}{Colors.ENDC}", file=sys.stderr)
-    sys.exit(1)
-```
-
-## Testing
-
-### Manual Testing Checklist
-
-Before submitting a PR, test your command with:
-
-- [ ] Help flag: `cptools <name> --help`
-- [ ] Valid inputs: `cptools <name> A`
-- [ ] Invalid inputs: `cptools <name> nonexistent`
-- [ ] Edge cases: empty files, special characters
-- [ ] Output redirection (if applicable): `cptools <name> A > output.txt`
-- [ ] Autocomplete: `cptools <name> <TAB>`
-
-### Test Output Separation
-
-If your command outputs data to stdout:
-
-```bash
-# Only data should appear (no colored messages)
-cptools <name> A > output.txt
-
-# Only logs should appear (no data)
-cptools <name> A 2> logs.txt
-```
-
-## Submitting Changes
-
-### Before Submitting
-
-1. **Test thoroughly** - Run through the testing checklist
-2. **Follow guidelines** - Ensure code follows this document
-3. **Update documentation** - If adding features, update help text
-4. **Check autocomplete** - Verify zsh completion works
-
-### Pull Request Process
-
-1. **Create a feature branch**:
-   ```bash
-   git checkout -b feature/command-name
-   ```
-
-2. **Make your changes** following the guidelines
-
-3. **Commit with clear messages**:
-   ```bash
-   git commit -m "Add <name> command to <do something>"
-   ```
-
-4. **Test your changes**:
-   ```bash
-   ./install.sh
-   cptools <name> --help
-   # Run through test cases
-   ```
-
-5. **Push and create PR**:
-   ```bash
-   git push origin feature/command-name
-   ```
-
-### Commit Message Format
-
-- Use imperative mood: "Add feature" not "Added feature"
-- First line: brief summary (50 chars or less)
-- Detailed description in body if needed
-
-Examples:
-```
-Add hash command for code fingerprinting
-
-Implement a new hash command that generates context-aware
-hashes for each line of C++ code. Supports saving to file
-with -s flag.
-```
-
-## Command Development Checklist
-
-Use this checklist when adding a new command:
-
-- [ ] Command file created in `commands/<name>.py`
-- [ ] Added to dispatcher in `cptools` (COMMANDS dict + elif branch)
-- [ ] Autocomplete configured in `completions/_cptools`
-- [ ] Help implemented (`-h`, `--help`)
-- [ ] Proper output separation (stderr for logs, stdout for data)
-- [ ] Consistent visual feedback (header, filename, status)
-- [ ] Error handling with clear messages to stderr
-- [ ] Generated files added to `.gitignore` (if applicable)
-- [ ] Generated files added to `init.py` template (if applicable)
-- [ ] Tested with valid inputs
-- [ ] Tested with invalid inputs
-- [ ] Tested output redirection (if applicable)
-- [ ] Autocomplete tested in zsh
-
-## Additional Resources
-
-- [Example Commands](commands/) - Reference implementations:
-  - `hash.py` - Perfect stderr/stdout separation with options
-  - `test.py` - Using helper functions for output
-  - `fetch.py` - Good error handling and feedback
-  - `add.py` - URL parsing and file creation
-
-## Proposing New Features
-
-We welcome feature proposals! Here's how to suggest new commands or functionality:
-
-### Before Proposing
-
-1. **Check existing issues** - Your idea might already be discussed
-2. **Consider scope** - Does it fit cptools' focus on competitive programming workflow?
-3. **Think about implementation** - Is it feasible with Python + shell tools?
-
-### How to Propose
-
-1. **Open a GitHub Issue** with:
-   - Clear description of the feature
-   - Use cases and examples
-   - Estimated complexity (if known)
-   - Alternative approaches (if applicable)
-
-2. **Use this template**:
-   ```markdown
-   ## Feature: `cptools <command>`
-
-   **Description**: Brief description of what it does
-
-   **Use case**: Why this would be useful
-
-   **Example usage**:
-   ```bash
-   cptools <command> <args>
-   ```
-
-   **Implementation notes**: Any technical considerations
-   ```
-
-3. **Label appropriately**:
-   - `enhancement` - New feature
-   - `good first issue` - Easy to implement (< 2 hours)
-   - `help wanted` - Open for community contribution
-
-## Versioning (Maintainer Only)
-
-CPTools follows [Semantic Versioning](https://semver.org/):
-- **Major** (X.0.0): Breaking changes
-- **Minor** (0.X.0): New features, backwards compatible
-- **Patch** (0.0.X): Bug fixes, backwards compatible
-
-### Version is Currently in Beta
-- Pre-1.0 versions (0.x.x) may include breaking changes in minor releases
-- Once 1.0.0 is reached, strict semver will be followed
-
-### How to Update Version (Maintainer Task)
-
-1. **Update version** in `cptools`:
-   ```python
-   __version__ = "0.4.0-beta"
-   ```
-
-2. **Create git tag**:
-   ```bash
-   git tag -a v0.4.0 -m "Release v0.4.0: Add feature X"
-   git push origin v0.4.0
-   ```
-
-3. **Create GitHub Release** with changelog
-
-**Note**: Contributors don't need to update the version - this is handled by the maintainer during releases.
-
-## Questions or Issues?
-
-- Check existing commands for reference implementations
-- Review this CONTRIBUTING.md for detailed patterns and examples
-- Open an issue for discussion before major changes
 
 ## Code of Conduct
 
-- Be respectful and constructive
-- Focus on improving the tool for all users
-- Help others learn and grow
+Please be respectful and constructive in all your interactions.
 
 ---
 
-Thank you for contributing to CPTools! Your efforts help make competitive programming more efficient for everyone.
+Thank you for helping make competitive programming more efficient for everyone!

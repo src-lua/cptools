@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 """
+Usage: cptools hash <problem> [options]
+
 Hash lines of a C++ file with context awareness.
+Generates a 3-character hash for each line based on its context.
 
-Usage:
-    cptools hash <problem>
+Options:
+  -s, --save    Save output to .hashed file instead of stdout
 
-Generates a 3-character hash for each line based on its context
-(accumulated code from enclosing blocks). Useful for detecting
-structural changes in code.
+Examples:
+  cptools hash A
+  cptools hash A -s
 """
 import os
 import sys
+import argparse
 import subprocess
 import tempfile
 
-from .common import Colors
+from lib.io import error, success, header, bold, log
 
 # The C++ hasher script
 HASHER_SOURCE = r"""#include <bits/stdc++.h>
@@ -72,7 +76,7 @@ def get_or_compile_hasher():
         )
 
         if result.returncode != 0:
-            print(f"{Colors.FAIL}Error compiling hasher:{Colors.ENDC}")
+            error("Error compiling hasher:")
             print(result.stderr)
             sys.exit(1)
 
@@ -81,13 +85,14 @@ def get_or_compile_hasher():
 def hash_file(filepath, filename, save_to_file=False):
     """Hash a C++ file and print results."""
     if not os.path.exists(filepath):
-        print(f"{Colors.FAIL}Error: {filepath} not found{Colors.ENDC}", file=sys.stderr)
+        error(f"Error: {filepath} not found")
         sys.exit(1)
 
     # Print status to stderr
-    print(f"{Colors.HEADER}--- Hashing File ---{Colors.ENDC}\n", file=sys.stderr)
-    print(f"  {Colors.BOLD}{filename}{Colors.ENDC}", file=sys.stderr)
-    print(file=sys.stderr)
+    header("--- Hashing File ---")
+    log()
+    bold(f"  {filename}")
+    log()
 
     hasher = get_or_compile_hasher()
 
@@ -110,15 +115,15 @@ def hash_file(filepath, filename, save_to_file=False):
                 output_name = os.path.splitext(filename)[0] + '.hashed'
                 with open(output_file, 'w') as out:
                     out.write(result.stdout)
-                print(f"{Colors.GREEN}✓ Hash saved to {output_name}{Colors.ENDC}", file=sys.stderr)
+                success(f"✓ Hash saved to {output_name}")
             else:
                 # Output goes to stdout (can be redirected)
                 print(result.stdout, end='')
-                print(f"\n{Colors.GREEN}✓ Hash generated successfully{Colors.ENDC}", file=sys.stderr)
+                success("\n✓ Hash generated successfully")
 
         except subprocess.CalledProcessError as e:
-            print(f"{Colors.FAIL}Error running hasher:{Colors.ENDC}", file=sys.stderr)
-            print(e.stderr, file=sys.stderr)
+            error("Error running hasher:")
+            log(e.stderr)
             sys.exit(1)
         finally:
             # Clean up temp files created by hasher
@@ -126,32 +131,19 @@ def hash_file(filepath, filename, save_to_file=False):
                 if os.path.exists(temp):
                     os.remove(temp)
 
-def main():
-    if len(sys.argv) < 2 or sys.argv[1] in ['-h', '--help']:
-        print(f"{Colors.BOLD}Usage:{Colors.ENDC} cptools hash <problem> [-s|--save]")
-        print(f"\nGenerates a 3-character hash for each line of a C++ file.")
-        print(f"The hash is context-aware (considers enclosing blocks).")
-        print(f"\n{Colors.BOLD}Options:{Colors.ENDC}")
-        print(f"  -s, --save    Save output to <problem>.hashed")
-        print(f"\n{Colors.BOLD}Examples:{Colors.ENDC}")
-        print(f"  cptools hash A           # Print to stdout")
-        print(f"  cptools hash A -s        # Save to A.hashed")
-        print(f"  cptools hash A > out.txt # Redirect to file")
-        sys.exit(0 if len(sys.argv) > 1 else 1)
+def get_parser():
+    """Creates and returns the argparse parser for the hash command."""
+    parser = argparse.ArgumentParser(description="Hash lines of a C++ file with context awareness.")
+    parser.add_argument('problem', help='Problem file')
+    parser.add_argument('-s', '--save', action='store_true', help='Save output to .hashed file instead of stdout')
+    return parser
 
-    # Parse arguments
-    save_to_file = False
-    problem = None
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
 
-    for arg in sys.argv[1:]:
-        if arg in ['-s', '--save']:
-            save_to_file = True
-        elif not arg.startswith('-'):
-            problem = arg
-
-    if not problem:
-        print(f"{Colors.FAIL}Error: No problem specified{Colors.ENDC}", file=sys.stderr)
-        sys.exit(1)
+    problem = args.problem
+    save_to_file = args.save
 
     directory = os.getcwd()
 
@@ -164,6 +156,3 @@ def main():
     filepath = os.path.join(directory, filename)
 
     hash_file(filepath, filename, save_to_file)
-
-if __name__ == "__main__":
-    main()

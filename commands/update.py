@@ -1,12 +1,25 @@
 #!/usr/bin/env python3
+"""
+Usage: cptools update [directory] [options]
+
+Generate or update info.md status file for the contest directory.
+
+Options:
+  --all         Update all contest directories in the repository
+
+Examples:
+  cptools update
+  cptools update --all
+"""
 import os
 import sys
+import argparse
 import re
 from datetime import datetime
 from pathlib import Path
 
-from .common import Colors, get_repo_root, PLATFORM_DIRS
-from lib.fileops import read_problem_header
+from lib.fileops import read_problem_header, get_repo_root, PLATFORM_DIRS
+from lib.io import error, success, warning, info, header, bold
 
 def get_status_emoji(status):
     """Map status to emoji."""
@@ -88,10 +101,10 @@ def generate_info_md(directory):
     cpp_files = sorted([f for f in os.listdir(directory) if f.endswith('.cpp')])
 
     if not cpp_files:
-        print(f"{Colors.WARNING}No .cpp files found in {directory}{Colors.ENDC}")
+        warning(f"No .cpp files found in {directory}")
         return
 
-    print(f"{Colors.BLUE}Reading {len(cpp_files)} problem files...{Colors.ENDC}")
+    info(f"Reading {len(cpp_files)} problem files...")
 
     # Extract problem information
     problems = []
@@ -111,7 +124,7 @@ def generate_info_md(directory):
             })
 
     if not problems:
-        print(f"{Colors.FAIL}No valid problem headers found.{Colors.ENDC}")
+        error("No valid problem headers found.")
         return
 
     # Detect platform and contest
@@ -177,8 +190,8 @@ def generate_info_md(directory):
     with open(info_path, 'w') as f:
         f.write(content)
 
-    print(f"{Colors.GREEN}✓ Generated {info_path}{Colors.ENDC}")
-    print(f"{Colors.GREEN}✓ Progress: {solved_count}/{len(problems)} solved{Colors.ENDC}")
+    success(f"✓ Generated {info_path}")
+    success(f"✓ Progress: {solved_count}/{len(problems)} solved")
 
 ROOT_DIR = get_repo_root()
 
@@ -193,34 +206,40 @@ def update_all():
         for root, dirs, files in os.walk(platform_path):
             cpp_files = [f for f in files if f.endswith('.cpp')]
             if cpp_files:
-                print(f"\n{Colors.BLUE}> {os.path.relpath(root, ROOT_DIR)}{Colors.ENDC}")
+                print()
+                info(f"> {os.path.relpath(root, ROOT_DIR)}")
                 generate_info_md(root)
                 updated += 1
 
     if updated == 0:
-        print(f"{Colors.WARNING}No contest directories found.{Colors.ENDC}")
+        warning("No contest directories found.")
     else:
-        print(f"\n{Colors.BOLD}Updated {updated} contest(s).{Colors.ENDC}")
+        print()
+        bold(f"Updated {updated} contest(s).")
 
-def main():
-    if len(sys.argv) > 1 and sys.argv[1] == '--all':
-        print(f"{Colors.HEADER}--- Updating All Contest Info ---{Colors.ENDC}")
+def get_parser():
+    """Creates and returns the argparse parser for the update command."""
+    parser = argparse.ArgumentParser(description="Generate or update info.md status file for the contest directory.")
+    parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory (default: current)')
+    parser.add_argument('--all', action='store_true', help='Update all contest directories in the repository')
+    return parser
+
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
+
+    if args.all:
+        header("--- Updating All Contest Info ---")
         update_all()
         return
 
-    if len(sys.argv) > 1:
-        directory = sys.argv[1]
-    else:
-        directory = os.getcwd()
+    directory = args.directory
 
     if not os.path.isdir(directory):
-        print(f"{Colors.FAIL}Error: {directory} is not a valid directory.{Colors.ENDC}")
+        error(f"Error: {directory} is not a valid directory.")
         sys.exit(1)
 
-    print(f"{Colors.HEADER}--- Updating Contest Info ---{Colors.ENDC}")
+    header("--- Updating Contest Info ---")
     print(f"Directory: {directory}\n")
 
     generate_info_md(directory)
-
-if __name__ == "__main__":
-    main()

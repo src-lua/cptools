@@ -26,6 +26,7 @@ def parse_problem_range(input_str):
         >>> parse_problem_range("A")
         ['A']
     """
+    # Handle ~ as range separator
     if '~' in input_str:
         parts = input_str.split('~')
         if len(parts) == 2 and len(parts[0].strip()) == 1 and len(parts[1].strip()) == 1:
@@ -33,8 +34,8 @@ def parse_problem_range(input_str):
             start = ord(parts[0].strip().upper())
             end = ord(parts[1].strip().upper())
             return [chr(i) for i in range(start, end + 1)]
-    # Preserve original case for non-range inputs
-    return input_str.replace(',', ' ').split()
+    # Split by comma or space, and uppercase
+    return [p.upper() for p in input_str.replace(',', ' ').split()]
 
 
 def parse_problem_url(url):
@@ -231,6 +232,26 @@ def parse_contest_url(url):
             'is_training': False,
             'contest_id': match.group(1),
             'default_range': default_range
+        }
+
+    # CSES: cses.fi/problemset/
+    if 'cses.fi/problemset' in url:
+        return {
+            'platform': 'CSES',
+            'base_url': 'https://cses.fi/problemset/task/{char}',
+            'is_training': False,
+            'contest_id': 'problemset',
+            'default_range': None
+        }
+
+    # Yosupo: judge.yosupo.jp
+    if 'judge.yosupo.jp' in url:
+        return {
+            'platform': 'Yosupo',
+            'base_url': 'https://judge.yosupo.jp/problem/{char}',
+            'is_training': False,
+            'contest_id': 'library',
+            'default_range': None
         }
 
     return None

@@ -1,30 +1,26 @@
 #!/usr/bin/env python3
 """
-Compile and test a solution.
+Usage: cptools test <problem> [directory] [options]
 
-Usage:
-    cptools test <problem> [directory]
-    cptools test <problem> --add [--no-out]
+Compile and test a solution against samples or custom inputs.
+
+Options:
+  --add         Add a new custom test case
+  --no-out      Skip generating expected output (when adding test)
 
 Examples:
-    cptools test A                  # compile & run A.cpp
-    cptools test A < input.txt      # pipe input from file
-    cptools test A                  # auto-tests if A_1.in exists (from cpt fetch)
-    cptools test A --add            # add custom test, generate expected output
-    cptools test A --add --no-out   # add custom test, skip output generation
+  cptools test A
+  cptools test A --add
+  cptools test A --add --no-out
 """
 import os
 import sys
+import argparse
 import subprocess
 
-from .common import Colors
-from .config import load_config
+from lib.config import load_config
 from lib import find_samples, compile_from_config, next_test_index
-
-
-def eprint(*args, **kwargs):
-    """Print to stderr so stdout redirection only captures solution output."""
-    print(*args, file=sys.stderr, **kwargs)
+from lib.io import log, error, success, info, header, bold
 
 def run_with_samples(binary, samples):
     """Run binary against sample test cases."""
@@ -50,33 +46,33 @@ def run_with_samples(binary, samples):
                 expected = f.read().rstrip('\n')
 
             if actual == expected:
-                eprint(f"  {Colors.GREEN}Sample {sample['num']}: PASS{Colors.ENDC}")
+                success(f"  Sample {sample['num']}: PASS")
                 passed += 1
             else:
-                eprint(f"  {Colors.FAIL}Sample {sample['num']}: FAIL{Colors.ENDC}")
-                eprint(f"    {Colors.BOLD}Input:{Colors.ENDC}")
+                error(f"  Sample {sample['num']}: FAIL")
+                bold("    Input:")
                 for line in input_data.strip().split('\n'):
-                    eprint(f"      {line}")
-                eprint(f"    {Colors.BOLD}Expected:{Colors.ENDC}")
+                    log(f"      {line}")
+                bold("    Expected:")
                 for line in expected.split('\n'):
-                    eprint(f"      {line}")
-                eprint(f"    {Colors.BOLD}Got:{Colors.ENDC}")
+                    log(f"      {line}")
+                bold("    Got:")
                 for line in actual.split('\n'):
-                    eprint(f"      {line}")
+                    log(f"      {line}")
         else:
-            eprint(f"  {Colors.BLUE}Sample {sample['num']}: (no expected output){Colors.ENDC}")
-            eprint(f"    {Colors.BOLD}Output:{Colors.ENDC}")
+            info(f"  Sample {sample['num']}: (no expected output)")
+            bold("    Output:")
             for line in actual.split('\n'):
-                eprint(f"      {line}")
+                log(f"      {line}")
             passed += 1
 
-    eprint(f"\n{Colors.BOLD}{passed}/{total} passed.{Colors.ENDC}")
+    bold(f"\n{passed}/{total} passed.")
     return passed == total
 
 
 def read_until_separator(label):
     """Read stdin until Ctrl+D, then reopen tty for next read."""
-    eprint(f"{Colors.BLUE}{label} (Ctrl+D to finish):{Colors.ENDC}")
+    info(f"{label} (Ctrl+D to finish):")
     data = sys.stdin.read()
     # Reopen tty so we can read again
     sys.stdin = open('/dev/tty', 'r')
@@ -89,7 +85,7 @@ def add_test(problem, directory, with_output):
     in_path = os.path.join(directory, f"{problem}_{idx}.in")
     out_path = os.path.join(directory, f"{problem}_{idx}.out")
 
-    eprint(f"{Colors.HEADER}--- Adding Test {problem}_{idx} ---{Colors.ENDC}")
+    header(f"--- Adding Test {problem}_{idx} ---")
 
     input_data = read_until_separator("Input")
 
@@ -98,7 +94,7 @@ def add_test(problem, directory, with_output):
         if input_data and not input_data.endswith('\n'):
             f.write('\n')
 
-    eprint(f"  {Colors.GREEN}+ {problem}_{idx}.in{Colors.ENDC}")
+    success(f"  + {problem}_{idx}.in")
 
     if with_output:
         output_data = read_until_separator("Output")
@@ -108,25 +104,29 @@ def add_test(problem, directory, with_output):
             if output_data and not output_data.endswith('\n'):
                 f.write('\n')
 
-        eprint(f"  {Colors.GREEN}+ {problem}_{idx}.out{Colors.ENDC}")
+        success(f"  + {problem}_{idx}.out")
 
-    eprint(f"\n{Colors.BOLD}Test {problem}_{idx} added.{Colors.ENDC}")
+    bold(f"\nTest {problem}_{idx} added.")
 
 
-def main():
-    if len(sys.argv) < 2:
-        eprint(f"{Colors.FAIL}Usage: cptools test <problem> [directory]{Colors.ENDC}")
-        eprint(f"  cptools test <problem> --add [--no-out]")
-        sys.exit(1)
+def get_parser():
+    """Creates and returns the argparse parser for the test command."""
+    parser = argparse.ArgumentParser(description="Compile and test a solution against samples or custom inputs.")
+    parser.add_argument('problem', help='Problem ID')
+    parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory')
+    parser.add_argument('--add', action='store_true', help='Add a new custom test case')
+    parser.add_argument('--no-out', action='store_true', help='Skip generating expected output')
+    return parser
 
-    problem = sys.argv[1].replace('.cpp', '')
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
 
-    add_mode = '--add' in sys.argv
-    no_output = '--no-out' in sys.argv
+    problem = args.problem.replace('.cpp', '')
+    directory = args.directory
 
-    # Get directory: first non-flag arg after problem
-    args = [a for a in sys.argv[2:] if not a.startswith('--')]
-    directory = args[0] if args else os.getcwd()
+    add_mode = args.add
+    no_output = args.no_out
 
     if add_mode:
         add_test(problem, directory, with_output=not no_output)
@@ -134,40 +134,37 @@ def main():
 
     source = os.path.join(directory, f"{problem}.cpp")
     if not os.path.exists(source):
-        eprint(f"{Colors.FAIL}Error: {problem}.cpp not found.{Colors.ENDC}")
+        error(f"Error: {problem}.cpp not found.")
         sys.exit(1)
 
     config = load_config()
     binary = os.path.join(directory, f".{problem}")
 
-    eprint(f"{Colors.BLUE}Compiling...{Colors.ENDC}")
+    info("Compiling...")
     result = compile_from_config(source, binary, config)
     if not result.success:
-        eprint(f"{Colors.FAIL}Compilation failed:{Colors.ENDC}")
-        eprint(result.stderr)
+        error("Compilation failed:")
+        log(result.stderr)
         sys.exit(1)
 
     try:
         samples = find_samples(directory, problem)
 
         if samples and sys.stdin.isatty():
-            eprint(f"{Colors.BLUE}Running {len(samples)} sample(s)...{Colors.ENDC}\n")
-            success = run_with_samples(binary, samples)
-            sys.exit(0 if success else 1)
+            info(f"Running {len(samples)} sample(s)...\n")
+            success_result = run_with_samples(binary, samples)
+            sys.exit(0 if success_result else 1)
         else:
             # Interactive mode or piped stdin
             if not sys.stdin.isatty():
                 result = subprocess.run([binary], stdin=sys.stdin)
             else:
-                eprint(f"{Colors.BLUE}Running interactively (Ctrl+D to end input)...{Colors.ENDC}")
+                info("Running interactively (Ctrl+D to end input)...")
                 result = subprocess.run([binary])
             sys.exit(result.returncode)
     except subprocess.TimeoutExpired:
-        eprint(f"{Colors.FAIL}Time limit exceeded (10s){Colors.ENDC}")
+        error("Time limit exceeded (10s)")
         sys.exit(1)
     finally:
         if os.path.exists(binary):
             os.remove(binary)
-
-if __name__ == "__main__":
-    main()

@@ -19,6 +19,8 @@ Usage:
     cptools config                       Edit configuration
     cptools commit [directory]           Commit and push changes
     cptools bundle <problem>             Bundle includes and copy to clipboard
+    cptools hash <problem>               Hash file lines with context
+    cptools completion [--install]       Generate/install shell completion
 """
 import sys
 import os
@@ -28,35 +30,41 @@ __version__ = "0.3.0-beta"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
-from commands.common import Colors
-BLUE, BOLD, GREEN, FAIL, HEADER, ENDC = Colors.BLUE, Colors.BOLD, Colors.GREEN, Colors.FAIL, Colors.HEADER, Colors.ENDC
+from lib.io import Colors, error, log
+from lib import get_command_modules
 
-COMMANDS = {
-    'new':    'Create a new contest     (e.g. cptools new <url>)',
-    'add':    'Add a file or problem    (e.g. cptools add A2 | cptools add <url>)',
-    'rm':     'Remove problem files     (e.g. cptools rm A B)',
-    'mark':   'Mark problem status      (e.g. cptools mark A)',
-    'status': 'Show contest progress    (e.g. cptools status)',
-    'open':   'Open problem in browser  (e.g. cptools open A)',
-    'test':   'Compile and test         (e.g. cptools test A)',
-    'fetch':  'Fetch sample test cases  (e.g. cptools fetch A~E)',
-    'stress': 'Stress test              (e.g. cptools stress A brute gen)',
-    'clean':  'Remove compiled binaries (e.g. cptools clean --all)',
-    'update': 'Update info.md           (e.g. cptools update --all)',
-    'init':   'Initialize contest repo  (e.g. cptools init)',
-    'config': 'Edit configuration       (e.g. cptools config)',
-    'commit': 'Commit and push          (e.g. cptools commit)',
-    'bundle': 'Bundle includes to clip  (e.g. cptools bundle A)',
-    'hash':   'Hash file lines          (e.g. cptools hash A)',
-}
+# Get command modules registry
+COMMAND_MODULES = get_command_modules()
+
+def get_command_description(module):
+    """Get command description from module's argparse parser."""
+    try:
+        parser = module.get_parser()
+        return parser.description or "No description"
+    except (AttributeError, Exception):
+        return "No description"
 
 def print_help():
-    print(f"{BOLD}cptools{ENDC} - Competitive Programming Tools\n")
-    print(f"{BOLD}Usage:{ENDC} cptools <command> [args]\n")
-    print(f"{BOLD}Commands:{ENDC}")
-    for cmd, desc in COMMANDS.items():
-        print(f"  {GREEN}{cmd:<8}{ENDC}  {desc}")
-    print(f"\nRun {BLUE}cptools <command> --help{ENDC} for more info on a command.")
+    """Print help message with available commands."""
+    print(f"{Colors.BOLD}cptools{Colors.ENDC} - Competitive Programming Tools\n")
+    print(f"{Colors.BOLD}Usage:{Colors.ENDC} cptools <command> [args]\n")
+    print(f"{Colors.BOLD}Commands:{Colors.ENDC}")
+
+    for cmd_name, module in COMMAND_MODULES.items():
+        desc = get_command_description(module)
+        # Truncate description if too long for clean display
+        if len(desc) > 80:
+            desc = desc[:77] + "..."
+        print(f"  {Colors.GREEN}{cmd_name:<12}{Colors.ENDC}  {desc}")
+
+    print(f"\nRun {Colors.BLUE}cptools <command> --help{Colors.ENDC} for more info on a command.")
+
+def print_version():
+    """Print version information."""
+    print(f"{Colors.BOLD}{Colors.HEADER}cptools {__version__}{Colors.ENDC}")
+    print(f"Copyright (C) 2026 Lua Guimarães Fernandes")
+    print(f"License MIT <https://opensource.org/licenses/MIT>")
+    print(f"This is free software; you are free to change and redistribute it.")
 
 def main():
     if len(sys.argv) < 2 or sys.argv[1] in ['-h', '--help']:
@@ -64,85 +72,23 @@ def main():
         sys.exit(0)
 
     if sys.argv[1] in ['-v', '--version']:
-        print(f"{BOLD}{HEADER}cptools {__version__}{ENDC}")
-        print(f"Copyright (C) 2026 Lua Guimarães Fernandes")
-        print(f"License MIT <https://opensource.org/licenses/MIT>")
-        print(f"This is free software; you are free to change and redistribute it.")
+        print_version()
         sys.exit(0)
 
     command = sys.argv[1]
 
+    # Check if command exists
+    if command not in COMMAND_MODULES:
+        error(f"Unknown command: {command}")
+        log()
+        print_help()
+        sys.exit(1)
+
     # Rewrite sys.argv so the sub-script sees its own args
     sys.argv = [command] + sys.argv[2:]
 
-    if command == 'new':
-        from commands import new
-        new.main()
-
-    elif command == 'add':
-        from commands import add
-        add.main()
-
-    elif command == 'rm':
-        from commands import rm
-        rm.main()
-
-    elif command == 'mark':
-        from commands import mark
-        mark.main()
-
-    elif command == 'status':
-        from commands import status
-        status.main()
-
-    elif command == 'open':
-        from commands import open
-        open.main()
-
-    elif command == 'test':
-        from commands import test
-        test.main()
-
-    elif command == 'fetch':
-        from commands import fetch
-        fetch.main()
-
-    elif command == 'stress':
-        from commands import stress
-        stress.main()
-
-    elif command == 'clean':
-        from commands import clean
-        clean.main()
-
-    elif command == 'update':
-        from commands import update
-        update.main()
-
-    elif command == 'init':
-        from commands import init
-        init.main()
-
-    elif command == 'config':
-        from commands import config
-        config.main()
-
-    elif command == 'commit':
-        from commands import commit
-        commit.main()
-
-    elif command == 'bundle':
-        from commands import bundle
-        bundle.main()
-
-    elif command == 'hash':
-        from commands import hash
-        hash.main()
-
-    else:
-        print(f"{FAIL}Unknown command: {command}{ENDC}\n")
-        print_help()
-        sys.exit(1)
+    # Execute the command
+    COMMAND_MODULES[command].run()
 
 if __name__ == "__main__":
     main()

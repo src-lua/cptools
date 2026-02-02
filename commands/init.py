@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
 """
+Usage: cptools init [directory] [options]
+
 Initialize a new competitive programming repository.
-
-Usage:
-    cptools init [directory]             # default: current directory
-    cptools init [directory] --nogit     # skip git init
-
 Creates platform directories, .gitignore, and ensures config exists.
+
+Options:
+  --nogit       Skip git initialization
+
+Examples:
+  cptools init
+  cptools init my-cp-repo
+  cptools init --nogit
 """
 import os
 import sys
+import argparse
 import subprocess
 
-from .common import Colors, PLATFORM_DIRS
-from .config import ensure_config, get_config_path
+from lib.fileops import PLATFORM_DIRS
+from lib.config import ensure_config, get_config_path
+from lib.io import success, warning, info, header, bold
 
 GITIGNORE_CONTENT = """\
 __pycache__/
@@ -24,19 +31,25 @@ __pycache__/
 *.out
 *.o
 
-# Generated hash files
 *.hashed
 
 # Stress test artifacts
 _stress_*
 """
 
-def main():
-    nogit = '--nogit' in sys.argv
-    args = [a for a in sys.argv[1:] if a != '--nogit']
-    directory = args[0] if args else os.getcwd()
+def get_parser():
+    """Creates and returns the argparse parser for the init command."""
+    parser = argparse.ArgumentParser(description="Initialize a new competitive programming repository.")
+    parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory')
+    parser.add_argument('--nogit', action='store_true', help='Skip git initialization')
+    return parser
 
-    print(f"{Colors.HEADER}--- Initializing contest repo ---{Colors.ENDC}")
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
+    directory = args.directory
+
+    header("--- Initializing contest repo ---")
     print(f"Directory: {directory}\n")
 
     os.makedirs(directory, exist_ok=True)
@@ -47,21 +60,21 @@ def main():
         path = os.path.join(directory, d)
         if not os.path.exists(path):
             os.makedirs(path)
-            print(f"  {Colors.GREEN}+ {d}/{Colors.ENDC}")
+            success(f"  + {d}/")
         else:
-            print(f"  {Colors.WARNING}  {d}/ (already exists){Colors.ENDC}")
+            warning(f"    {d}/ (already exists)")
 
     # Create .gitignore
     gitignore_path = os.path.join(directory, ".gitignore")
     if not os.path.exists(gitignore_path):
         with open(gitignore_path, 'w') as f:
             f.write(GITIGNORE_CONTENT)
-        print(f"  {Colors.GREEN}+ .gitignore{Colors.ENDC}")
+        success("  + .gitignore")
     else:
-        print(f"  {Colors.WARNING}  .gitignore (already exists){Colors.ENDC}")
+        warning("    .gitignore (already exists)")
 
     # Git init if not already a repo
-    if not nogit:
+    if not args.nogit:
         git_dir = os.path.join(directory, ".git")
         if not os.path.exists(git_dir):
             result = subprocess.run(
@@ -69,18 +82,20 @@ def main():
                 capture_output=True, text=True,
             )
             if result.returncode == 0:
-                print(f"\n  {Colors.GREEN}+ git init{Colors.ENDC}")
+                print()
+                success("  + git init")
             else:
-                print(f"\n  {Colors.WARNING}git init failed: {result.stderr.strip()}{Colors.ENDC}")
+                print()
+                warning(f"  git init failed: {result.stderr.strip()}")
         else:
-            print(f"  {Colors.WARNING}  .git/ (already a repo){Colors.ENDC}")
+            warning("    .git/ (already a repo)")
 
     # Ensure config exists
     ensure_config()
-    print(f"\n{Colors.BLUE}Config: {get_config_path()}{Colors.ENDC}")
+    print()
+    info(f"Config: {get_config_path()}")
+    from lib.io import Colors
     print(f"Run {Colors.BOLD}cptools config{Colors.ENDC} to edit author name and settings.")
 
-    print(f"\n{Colors.BOLD}Done!{Colors.ENDC}")
-
-if __name__ == "__main__":
-    main()
+    print()
+    bold("Done!")

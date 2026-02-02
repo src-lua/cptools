@@ -7,7 +7,31 @@ This package provides:
 - fileops: File operations and header management
 - compiler: C++ compilation utilities
 - judges: Platform/judge abstractions (Phase 2)
+- io: IO and logging utilities
+- config: Configuration management
+- commands: Command modules registry
 """
+
+# Custom Exceptions
+class CptoolsError(Exception):
+    """Base exception for all cptools errors."""
+    pass
+
+class PlatformError(CptoolsError):
+    """Raised when there's an error with a platform/judge (network, parsing, etc.)."""
+    pass
+
+class FileOperationError(CptoolsError):
+    """Raised when there's an error with file operations."""
+    pass
+
+class CompilationError(CptoolsError):
+    """Raised when compilation fails."""
+    pass
+
+class ParsingError(CptoolsError):
+    """Raised when parsing fails (URL, problem range, etc.)."""
+    pass
 
 # Parsing utilities
 from .parsing import (
@@ -53,11 +77,70 @@ from .judges import (
     CSESJudge,
     YosupoJudge,
     VJudgeJudge,
-    JUDGES,
+    ALL_JUDGES,
     detect_judge,
 )
 
+# IO and logging utilities
+from .io import (
+    Colors,
+    log,
+    out,
+    error,
+    success,
+    warning,
+    info,
+    header,
+    bold,
+)
+
+# Configuration
+from .config import (
+    load_config,
+    ensure_config,
+    get_config_path,
+)
+
+# Command modules registry
+def get_command_modules():
+    """
+    Returns a dict mapping command names to their modules.
+    Import is done lazily to avoid circular dependencies.
+    """
+    from commands import (
+        new, add, rm, mark, status, fetch, clean, update,
+        init, config, commit, bundle, stress, test, hash
+    )
+    from commands import open as open_cmd
+    from commands import completion
+
+    return {
+        'new': new,
+        'add': add,
+        'rm': rm,
+        'mark': mark,
+        'status': status,
+        'open': open_cmd,
+        'test': test,
+        'fetch': fetch,
+        'stress': stress,
+        'clean': clean,
+        'update': update,
+        'init': init,
+        'config': config,
+        'commit': commit,
+        'bundle': bundle,
+        'hash': hash,
+        'completion': completion,
+    }
+
 __all__ = [
+    # Exceptions
+    'CptoolsError',
+    'PlatformError',
+    'FileOperationError',
+    'CompilationError',
+    'ParsingError',
     # Parsing
     'parse_problem_range',
     'parse_problem_url',
@@ -89,6 +172,22 @@ __all__ = [
     'CSESJudge',
     'YosupoJudge',
     'VJudgeJudge',
-    'JUDGES',
+    'ALL_JUDGES',
     'detect_judge',
+    # IO and logging
+    'Colors',
+    'log',
+    'out',
+    'error',
+    'success',
+    'warning',
+    'info',
+    'header',
+    'bold',
+    # Config
+    'load_config',
+    'ensure_config',
+    'get_config_path',
+    # Commands
+    'get_command_modules',
 ]

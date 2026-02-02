@@ -50,6 +50,8 @@ def clean_sample_text(text):
 class Judge(ABC):
     """Base class for online judge platforms."""
 
+    platform_name: str = "Unknown"
+
     @abstractmethod
     def detect(self, url: str) -> bool:
         """
@@ -106,6 +108,7 @@ class Judge(ABC):
 
 class CodeforcesJudge(Judge):
     """Codeforces platform (including Gym)."""
+    platform_name = "Codeforces"
 
     def detect(self, url: str) -> bool:
         return 'codeforces.com' in url
@@ -169,6 +172,7 @@ class CodeforcesJudge(Judge):
 
 class AtCoderJudge(Judge):
     """AtCoder platform."""
+    platform_name = "AtCoder"
 
     def detect(self, url: str) -> bool:
         return 'atcoder.jp' in url
@@ -244,6 +248,7 @@ class AtCoderJudge(Judge):
 
 class CSESJudge(Judge):
     """CSES Problem Set."""
+    platform_name = "CSES"
 
     def detect(self, url: str) -> bool:
         return 'cses.fi' in url
@@ -296,6 +301,7 @@ class CSESJudge(Judge):
 
 class YosupoJudge(Judge):
     """Yosupo Library Checker."""
+    platform_name = "Yosupo"
 
     def detect(self, url: str) -> bool:
         return 'judge.yosupo.jp' in url
@@ -315,6 +321,7 @@ class YosupoJudge(Judge):
 
 class VJudgeJudge(Judge):
     """vJudge platform (aggregates problems from other judges)."""
+    platform_name = "vJudge"
 
     def detect(self, url: str) -> bool:
         return 'vjudge.net' in url
@@ -333,7 +340,7 @@ class VJudgeJudge(Judge):
 
 
 # Registry of all available judges
-JUDGES: List[Judge] = [
+ALL_JUDGES: List[Judge] = [
     CodeforcesJudge(),
     AtCoderJudge(),
     CSESJudge(),
@@ -357,7 +364,7 @@ def detect_judge(url: str) -> Optional[Judge]:
         >>> type(judge).__name__
         'CodeforcesJudge'
     """
-    for judge in JUDGES:
+    for judge in ALL_JUDGES:
         if judge.detect(url):
             return judge
     return None

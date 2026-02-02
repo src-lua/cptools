@@ -1,26 +1,42 @@
 #!/usr/bin/env python3
 """
+Usage: cptools status [directory]
+
 Show a quick summary of the current contest directory.
 
-Usage:
-    python3 contest_status.py [directory]
+Arguments:
+  directory     Target directory (default: current)
+
+Examples:
+  cptools status
+  cptools status /path/to/contest
 """
 import os
 import sys
-from .common import Colors
+import argparse
 from .update import get_status_emoji
 from lib.fileops import read_problem_header
+from lib.io import error, warning, Colors, log
 
-def main():
-    directory = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
+def get_parser():
+    """Creates and returns the argparse parser for the status command."""
+    parser = argparse.ArgumentParser(description="Show a quick summary of the current contest directory.")
+    parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory (default: current)')
+    return parser
+
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
+
+    directory = args.directory
 
     if not os.path.isdir(directory):
-        print(f"{Colors.FAIL}Error: {directory} is not a valid directory.{Colors.ENDC}")
+        error(f"Error: {directory} is not a valid directory.")
         sys.exit(1)
 
     cpp_files = sorted([f for f in os.listdir(directory) if f.endswith('.cpp')])
     if not cpp_files:
-        print(f"{Colors.WARNING}No .cpp files found.{Colors.ENDC}")
+        warning("No .cpp files found.")
         sys.exit(1)
 
     counts = {}
@@ -46,15 +62,15 @@ def main():
 
     # Header
     dirname = os.path.basename(os.path.abspath(directory))
-    print(f"{Colors.BOLD}{dirname}{Colors.ENDC}  {ac}/{total} solved\n")
+    log(f"{Colors.BOLD}{dirname}{Colors.ENDC}  {ac}/{total} solved\n")
 
     # Problem list
     for char, emoji, status, name in problems:
         label = '' if status in ['~', ''] else f" {status}"
-        print(f"  {emoji}{label:<5} {Colors.BOLD}{char:<4}{Colors.ENDC} {name}")
+        log(f"  {emoji}{label:<5} {Colors.BOLD}{char:<4}{Colors.ENDC} {name}")
 
     # Summary line
-    print()
+    log()
     parts = []
     if ac > 0:
         parts.append(f"{Colors.GREEN}{ac} AC{Colors.ENDC}")
@@ -64,7 +80,4 @@ def main():
     pending = counts.get('~', 0)
     if pending > 0:
         parts.append(f"{pending} pending")
-    print("  " + "  ".join(parts))
-
-if __name__ == "__main__":
-    main()
+    log("  " + "  ".join(parts))

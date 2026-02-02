@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
 """
+Usage: cptools stress <solution> <brute> <gen> [options]
+
 Stress test: compare solution vs brute force with random inputs.
 
-Usage:
-    cptools stress <solution> <brute> <gen> [--checker <checker>]
+Options:
+  --checker <chk>   Use custom checker (default: byte comparison)
 
 Examples:
-    cptools stress A A-brute gen
-    cptools stress A A-brute gen --checker checker
-
-Arguments are filenames without .cpp extension.
-The generator receives the iteration number as argument (./gen 1, ./gen 2, ...).
-Without --checker, outputs are compared byte-by-byte.
-With --checker, runs: ./checker input output_sol output_brute
+  cptools stress A A-brute gen
+  cptools stress A A-brute gen --checker checker
 """
 import os
 import sys
+import argparse
 import signal
 import subprocess
 
-from .common import Colors
-from .config import load_config
+from lib.config import load_config
 from lib import compile_from_config
+from lib.io import error, success, warning, info, header, bold
 
 TEMP_FILES = ['_stress_sol', '_stress_brt', '_stress_gen', '_stress_chk',
               '_stress_in', '_stress_out', '_stress_out2']
@@ -32,25 +30,23 @@ def cleanup():
         if os.path.exists(f):
             os.remove(f)
 
-def main():
-    if len(sys.argv) < 4:
-        print(f"{Colors.FAIL}Usage: cptools stress <solution> <brute> <gen> [--checker <checker>]{Colors.ENDC}")
-        print(f"  Example: cptools stress A A-brute gen")
-        print(f"  Example: cptools stress A A-brute gen --checker checker")
-        sys.exit(1)
+def get_parser():
+    """Creates and returns the argparse parser for the stress command."""
+    parser = argparse.ArgumentParser(description="Stress test: compare solution vs brute force with random inputs.")
+    parser.add_argument('solution', help='Solution file')
+    parser.add_argument('brute', help='Brute force file')
+    parser.add_argument('gen', help='Generator file')
+    parser.add_argument('--checker', help='Custom checker file')
+    return parser
 
-    sol_name = sys.argv[1].replace('.cpp', '')
-    brute_name = sys.argv[2].replace('.cpp', '')
-    gen_name = sys.argv[3].replace('.cpp', '')
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
 
-    checker_name = None
-    if '--checker' in sys.argv:
-        idx = sys.argv.index('--checker')
-        if idx + 1 < len(sys.argv):
-            checker_name = sys.argv[idx + 1].replace('.cpp', '')
-        else:
-            print(f"{Colors.FAIL}Error: --checker requires an argument.{Colors.ENDC}")
-            sys.exit(1)
+    sol_name = args.solution.replace('.cpp', '')
+    brute_name = args.brute.replace('.cpp', '')
+    gen_name = args.gen.replace('.cpp', '')
+    checker_name = args.checker.replace('.cpp', '') if args.checker else None
 
     # Register cleanup on exit
     signal.signal(signal.SIGINT, lambda s, f: (cleanup(), sys.exit(1)))
@@ -58,7 +54,7 @@ def main():
 
     config = load_config()
 
-    print(f"{Colors.HEADER}--- Stress Test ---{Colors.ENDC}")
+    header("--- Stress Test ---")
     print(f"  Solution:  {sol_name}.cpp")
     print(f"  Brute:     {brute_name}.cpp")
     print(f"  Generator: {gen_name}.cpp")
@@ -67,7 +63,7 @@ def main():
     print()
 
     # Compile all files
-    print(f"{Colors.BLUE}Compiling...{Colors.ENDC}")
+    info("Compiling...")
 
     sources = [
         (f"{sol_name}.cpp", "_stress_sol"),
@@ -79,19 +75,22 @@ def main():
 
     for src, binary in sources:
         if not os.path.exists(src):
-            print(f"{Colors.FAIL}Error: {src} not found.{Colors.ENDC}")
+            error(f"Error: {src} not found.")
             cleanup()
             sys.exit(1)
         result = compile_from_config(src, binary, config)
         if not result.success:
-            print(f"{Colors.FAIL}Compilation failed for {src}:{Colors.ENDC}")
+            error(f"Compilation failed for {src}:")
             print(result.stderr)
             cleanup()
             sys.exit(1)
 
-    print(f"{Colors.GREEN}All compiled.{Colors.ENDC}\n")
-    print(f"{Colors.BLUE}Running stress test (Ctrl+C to stop)...{Colors.ENDC}\n")
+    success("All compiled.")
+    print()
+    info("Running stress test (Ctrl+C to stop)...")
+    print()
 
+    i = 0
     try:
         for i in range(1, 1_000_000):
             # Generate input
@@ -102,7 +101,7 @@ def main():
                     timeout=10,
                 )
             if gen_result.returncode != 0:
-                print(f"{Colors.FAIL}Generator failed on iteration {i}{Colors.ENDC}")
+                error(f"Generator failed on iteration {i}")
                 break
 
             # Run solution
@@ -123,10 +122,10 @@ def main():
 
             # Check for runtime errors
             if sol_result.returncode != 0:
-                print(f"{Colors.FAIL}Solution RE on iteration {i}{Colors.ENDC}")
+                error(f"Solution RE on iteration {i}")
                 break
             if brute_result.returncode != 0:
-                print(f"{Colors.FAIL}Brute force RE on iteration {i}{Colors.ENDC}")
+                error(f"Brute force RE on iteration {i}")
                 break
 
             # Compare outputs
@@ -142,33 +141,34 @@ def main():
                     match = f1.read() == f2.read()
 
             if not match:
-                print(f"{Colors.FAIL}Mismatch on iteration {i}!{Colors.ENDC}\n")
+                error(f"Mismatch on iteration {i}!")
+                print()
 
                 with open('_stress_in', 'r') as f:
-                    print(f"{Colors.BOLD}Input:{Colors.ENDC}")
+                    bold("Input:")
                     print(f.read())
 
                 with open('_stress_out', 'r') as f:
-                    print(f"{Colors.BOLD}Solution output:{Colors.ENDC}")
+                    bold("Solution output:")
                     print(f.read())
 
                 with open('_stress_out2', 'r') as f:
-                    print(f"{Colors.BOLD}Brute output:{Colors.ENDC}")
+                    bold("Brute output:")
                     print(f.read())
 
                 break
             else:
-                print(f"  {Colors.GREEN}#{i} OK{Colors.ENDC}", end='\r')
+                success(f"  #{i} OK", end='\r')
 
         else:
-            print(f"\n{Colors.GREEN}1000000 iterations passed.{Colors.ENDC}")
+            print()
+            success("1000000 iterations passed.")
 
     except subprocess.TimeoutExpired:
-        print(f"\n{Colors.FAIL}Timeout on iteration {i}{Colors.ENDC}")
+        print()
+        error(f"Timeout on iteration {i}")
     except KeyboardInterrupt:
-        print(f"\n\n{Colors.BLUE}Stopped after {i} iterations.{Colors.ENDC}")
+        print("\n")
+        info(f"Stopped after {i} iterations.")
     finally:
         cleanup()
-
-if __name__ == "__main__":
-    main()

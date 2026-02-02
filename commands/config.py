@@ -1,64 +1,38 @@
 #!/usr/bin/env python3
 """
-Manage cptools configuration.
+Usage: cptools config
 
-Usage:
-    cptools config              Open config file in $EDITOR
+Manage cptools configuration. Opens the config file in the default editor.
+
+Examples:
+  cptools config
 """
 import os
 import sys
-import json
+import argparse
 import subprocess
 
-from .common import Colors
+from lib.io import info, error
+from lib.config import ensure_config, get_config_path
 
-CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "cptools")
-CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
+def get_parser():
+    """Creates and returns the argparse parser for the config command."""
+    parser = argparse.ArgumentParser(description="Manage cptools configuration.")
+    return parser
 
-DEFAULTS = {
-    "author": "Lua",
-    "default_group_id": "yc7Yxny414",
-    "compiler": "g++",
-    "compiler_flags": ["-O2", "-std=c++17"],
-}
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
 
-def get_config_path():
-    return CONFIG_PATH
-
-def ensure_config():
-    """Create config file with defaults if it doesn't exist."""
-    if os.path.exists(CONFIG_PATH):
-        return
-
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(CONFIG_PATH, 'w') as f:
-        json.dump(DEFAULTS, f, indent=4)
-        f.write('\n')
-
-def load_config():
-    """Load config, merging with defaults for any missing keys."""
-    ensure_config()
-    try:
-        with open(CONFIG_PATH, 'r') as f:
-            user_config = json.load(f)
-    except (json.JSONDecodeError, IOError):
-        user_config = {}
-
-    config = dict(DEFAULTS)
-    config.update(user_config)
-    return config
-
-def main():
     ensure_config()
 
     editor = os.environ.get("EDITOR", "vi")
-    print(f"{Colors.BLUE}Opening config: {CONFIG_PATH}{Colors.ENDC}")
+    path = get_config_path()
+    info(f"Opening config: {path}")
 
     try:
-        subprocess.run([editor, CONFIG_PATH])
+        subprocess.run([editor, path])
     except FileNotFoundError:
-        print(f"{Colors.FAIL}Editor '{editor}' not found. Set $EDITOR.{Colors.ENDC}")
+        error(f"Editor '{editor}' not found. Set $EDITOR.")
         sys.exit(1)
 
-if __name__ == "__main__":
-    main()

@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
 """
+Usage: cptools bundle <problem> [options]
+
 Bundle a solution by expanding local #include "..." directives into a single file.
 
-Usage:
-    cptools bundle <problem>           Bundle and copy to clipboard
-    cptools bundle <problem> -o FILE   Bundle and write to file
-    cptools bundle <problem> -i        Bundle in-place (overwrites source)
+Options:
+  -o FILE       Write output to file
+  -i            Bundle in-place (overwrite source)
+
+Examples:
+  cptools bundle A
+  cptools bundle A -o submission.cpp
+  cptools bundle A -i
 """
 import os
 import sys
+import argparse
 import re
 import subprocess
 
-from .common import Colors
-from .config import load_config
+from lib.config import load_config
+from lib.io import Colors, error, success, warning
 
 
 def get_include_paths(config):
@@ -122,28 +129,27 @@ def copy_to_clipboard(text):
     return False
 
 
-def main():
-    if len(sys.argv) < 2 or sys.argv[1] in ['-h', '--help']:
-        print(__doc__.strip())
-        sys.exit(0)
+def get_parser():
+    """Creates and returns the argparse parser for the bundle command."""
+    parser = argparse.ArgumentParser(description="Bundle a solution by expanding local #include directives.")
+    parser.add_argument('problem', help='Problem ID')
+    parser.add_argument('-o', metavar='FILE', help='Write output to file')
+    parser.add_argument('-i', action='store_true', help='Bundle in-place (overwrite source)')
+    return parser
 
-    problem = sys.argv[1].replace('.cpp', '')
+def run():
+    parser = get_parser()
+    args = parser.parse_args()
 
-    inplace = '-i' in sys.argv
+    problem = args.problem.replace('.cpp', '')
+    inplace = args.i
+    output_file = args.o
 
-    output_file = None
-    if '-o' in sys.argv:
-        idx = sys.argv.index('-o')
-        if idx + 1 < len(sys.argv):
-            output_file = sys.argv[idx + 1]
-        else:
-            print(f"{Colors.FAIL}Error: -o requires a filename.{Colors.ENDC}", file=sys.stderr)
-            sys.exit(1)
 
     source = os.path.join(os.getcwd(), f"{problem}.cpp")
 
     if not os.path.exists(source):
-        print(f"{Colors.FAIL}Error: {problem}.cpp not found.{Colors.ENDC}", file=sys.stderr)
+        error(f"Error: {problem}.cpp not found.")
         sys.exit(1)
 
     config = load_config()
@@ -155,19 +161,15 @@ def main():
     if inplace:
         with open(source, 'w') as f:
             f.write(output)
-        print(f"{Colors.GREEN}Bundled in-place: {problem}.cpp{Colors.ENDC}", file=sys.stderr)
+        success(f"Bundled in-place: {problem}.cpp")
     elif output_file:
         with open(output_file, 'w') as f:
             f.write(output)
-        print(f"{Colors.GREEN}Bundled to {output_file}{Colors.ENDC}", file=sys.stderr)
+        success(f"Bundled to {output_file}")
     else:
         if copy_to_clipboard(output):
-            print(f"{Colors.GREEN}Bundled and copied to clipboard!{Colors.ENDC}", file=sys.stderr)
+            success("Bundled and copied to clipboard!")
         else:
-            print(output)  # Bundled code goes to stdout for redirection
-            print(f"\n{Colors.WARNING}Could not copy to clipboard (install xclip or xsel).{Colors.ENDC}",
-                  file=sys.stderr)
-
-
-if __name__ == "__main__":
-    main()
+            from lib.io import out
+            out(output)  # Bundled code goes to stdout for redirection
+            warning("\nCould not copy to clipboard (install xclip or xsel).")

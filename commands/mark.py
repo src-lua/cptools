@@ -1,45 +1,53 @@
 #!/usr/bin/env python3
 """
+Usage: cptools mark <problem> [status] [directory]
+
 Mark the status of a problem in its C++ header.
 
-Usage:
-    python3 mark_status.py <problem> [status] [directory]
+Arguments:
+  problem       Problem ID or range (e.g. A, A~E)
+  status        Status code (AC, WA, TLE, MLE, RE, WIP, ~) [default: AC]
+  directory     Target directory (default: current)
 
 Examples:
-    python3 mark_status.py A                   # defaults to AC
-    python3 mark_status.py A AC
-    python3 mark_status.py B WA /path/to/contest
-    python3 mark_status.py A~E AC              # mark multiple problems
-
-Valid statuses: AC, WA, TLE, MLE, RE, WIP, ~ (reset to pending)
+  cptools mark A
+  cptools mark A AC
+  cptools mark B WA /path/to/contest
+  cptools mark A~E AC
 """
 import os
 import sys
+import argparse
 
-from .common import Colors
 from lib import parse_problem_range, update_problem_status
+from lib.io import error, success, warning, info, bold
 
 VALID_STATUSES = ['AC', 'WA', 'TLE', 'MLE', 'RE', 'WIP', '~']
 
-def main():
-    if len(sys.argv) < 2:
-        print(f"{Colors.FAIL}Usage: mark_status.py <problem(s)> [status] [directory]{Colors.ENDC}")
-        print(f"  Problems: A, B, A~E, \"A B C\"")
-        print(f"  Statuses: {', '.join(VALID_STATUSES)} (default: AC)")
-        sys.exit(1)
+def get_parser():
+    """Creates and returns the argparse parser for the mark command."""
+    parser = argparse.ArgumentParser(description="Mark the status of a problem in its C++ header.")
+    parser.add_argument('problem', help='Problem ID or range (e.g. A, A~E)')
+    parser.add_argument('args', nargs='*', help='Status code and/or directory')
+    return parser
 
-    problem_input = sys.argv[1]
+def run():
+    parser = get_parser()
+    opts = parser.parse_args()
 
-    # Smart arg parsing: if argv[2] is a directory, treat it as the directory arg
-    if len(sys.argv) > 2 and os.path.isdir(sys.argv[2]):
+    problem_input = opts.problem
+    extra_args = opts.args
+
+    # Smart arg parsing: if first extra arg is a directory, treat it as the directory arg
+    if len(extra_args) > 0 and os.path.isdir(extra_args[0]):
         new_status = 'AC'
-        directory = sys.argv[2]
+        directory = extra_args[0]
     else:
-        new_status = sys.argv[2].upper() if len(sys.argv) > 2 else 'AC'
-        directory = sys.argv[3] if len(sys.argv) > 3 else os.getcwd()
+        new_status = extra_args[0].upper() if len(extra_args) > 0 else 'AC'
+        directory = extra_args[1] if len(extra_args) > 1 else os.getcwd()
 
     if new_status not in VALID_STATUSES:
-        print(f"{Colors.WARNING}Warning: '{new_status}' is not a standard status.{Colors.ENDC}")
+        warning(f"Warning: '{new_status}' is not a standard status.")
         print(f"  Standard: {', '.join(VALID_STATUSES)}")
 
     problems = parse_problem_range(problem_input.upper())
@@ -48,22 +56,21 @@ def main():
     for p in problems:
         filepath = os.path.join(directory, f"{p}.cpp")
         if not os.path.exists(filepath):
-            print(f"  {Colors.WARNING}! {p}.cpp not found{Colors.ENDC}")
+            warning(f"  ! {p}.cpp not found")
             continue
 
         old_status = update_problem_status(filepath, new_status)
         if old_status is None:
-            print(f"  {Colors.WARNING}! {p}.cpp has no Status header{Colors.ENDC}")
+            warning(f"  ! {p}.cpp has no Status header")
         else:
-            print(f"  {Colors.GREEN}+ {p}: {old_status} -> {new_status}{Colors.ENDC}")
+            success(f"  + {p}: {old_status} -> {new_status}")
             updated += 1
 
     if updated > 0:
-        print(f"\n{Colors.BLUE}Updating info.md...{Colors.ENDC}")
+        print()
+        info("Updating info.md...")
         from .update import generate_info_md
         generate_info_md(directory)
 
-    print(f"\n{Colors.BOLD}Updated {updated}/{len(problems)} problem(s).{Colors.ENDC}")
-
-if __name__ == "__main__":
-    main()
+    print()
+    bold(f"Updated {updated}/{len(problems)} problem(s).")

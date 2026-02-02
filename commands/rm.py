@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
 """
+Usage: cptools rm <problem>... [directory]
+
 Remove problem files and their associated test cases.
 
-Usage:
-    cptools rm <problem> [directory]
-    cptools rm A B C [directory]
+Arguments:
+  problem       Problem ID(s) to remove (e.g. A, B, dp_a)
+  directory     Target directory (default: current)
 
 Examples:
-    cptools rm A                    # removes A.cpp and A_*.in/out in current dir
-    cptools rm dp_a dp_b            # removes multiple problems
-    cptools rm 1636                 # removes CSES problem 1636
+  cptools rm A
+  cptools rm dp_a dp_b
+  cptools rm 1636
 """
 import os
-import sys
+import argparse
 import glob
 
-from .common import Colors
+from lib.io import success, warning, info, header, bold
 
 def remove_problem(problem, directory):
     """Remove a problem file and its associated samples/binaries."""
@@ -27,7 +29,7 @@ def remove_problem(problem, directory):
         os.remove(cpp_file)
         removed.append(f"{problem}.cpp")
     else:
-        print(f"  {Colors.WARNING}! {problem}.cpp not found{Colors.ENDC}")
+        warning(f"  ! {problem}.cpp not found")
         return False
 
     # Remove sample test files (problem_*.in, problem_*.out)
@@ -49,20 +51,24 @@ def remove_problem(problem, directory):
 
     # Print what was removed
     if removed:
-        print(f"  {Colors.GREEN}- {problem}.cpp{Colors.ENDC}")
+        success(f"  - {problem}.cpp")
         if len(removed) > 1:
-            print(f"    {Colors.BLUE}(+ {len(removed) - 1} related file(s)){Colors.ENDC}")
+            info(f"    (+ {len(removed) - 1} related file(s))")
 
     return True
 
-def main():
-    if len(sys.argv) < 2:
-        print(f"{Colors.FAIL}Usage: cptools rm <problem(s)> [directory]{Colors.ENDC}")
-        print(f"  Examples: cptools rm A, cptools rm A B C")
-        sys.exit(1)
+def get_parser():
+    """Creates and returns the argparse parser for the rm command."""
+    parser = argparse.ArgumentParser(description="Remove problem files and their associated test cases.")
+    parser.add_argument('args', nargs='+', help='Problem ID(s) and optional directory')
+    return parser
+
+def run():
+    parser = get_parser()
+    opts = parser.parse_args()
 
     # Detect if last argument is a directory
-    args = sys.argv[1:]
+    args = opts.args
     if len(args) > 1 and os.path.isdir(args[-1]):
         directory = args[-1]
         problems = args[:-1]
@@ -70,14 +76,16 @@ def main():
         directory = os.getcwd()
         problems = args
 
-    print(f"{Colors.HEADER}--- Removing Problems ---{Colors.ENDC}\n")
+    header("--- Removing Problems ---")
+    print()
 
     removed_count = 0
     for p in problems:
         if remove_problem(p, directory):
             removed_count += 1
 
-    print(f"\n{Colors.BOLD}Removed {removed_count}/{len(problems)} problem(s).{Colors.ENDC}")
+    print()
+    bold(f"Removed {removed_count}/{len(problems)} problem(s).")
 
     # Update info.md if it exists
     if removed_count > 0:
@@ -86,6 +94,3 @@ def main():
             generate_info_md(directory)
         except Exception:
             pass
-
-if __name__ == "__main__":
-    main()

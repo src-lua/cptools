@@ -14,3 +14,9 @@ build/
 
 # Generated hash files
 *.hashed
+
+# Test coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/

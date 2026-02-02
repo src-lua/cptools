@@ -9,6 +9,7 @@ This module handles:
 import os
 import re
 import glob
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
@@ -289,7 +290,10 @@ def find_file_case_insensitive(directory, target):
         return None
 
     target_lower = target.lower()
-    target_cpp = f"{target}.cpp"
+    if target_lower.endswith('.cpp'):
+        target_cpp = target
+    else:
+        target_cpp = f"{target}.cpp"
     target_cpp_lower = target_cpp.lower()
 
     for filename in os.listdir(directory):
@@ -297,3 +301,55 @@ def find_file_case_insensitive(directory, target):
             return os.path.join(directory, filename)
 
     return None
+
+
+PLATFORM_DIRS = ['Trainings', 'Codeforces', 'vJudge', 'AtCoder', 'Yosupo', 'CSES', 'Other']
+
+SAFE_FILES = {'LICENSE', 'Makefile', 'CNAME', 'README'}
+
+BUILD_EXTENSIONS = {'.out', '.o', '.in', '.hashed'}
+
+
+def get_repo_root():
+    """Find the git root of the current working directory."""
+    try:
+        result = subprocess.run(
+            ['git', 'rev-parse', '--show-toplevel'],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except FileNotFoundError:
+        pass
+    return os.getcwd()
+
+
+def is_removable(filepath):
+    """Check if a file is a compiled binary or build artifact."""
+    name = os.path.basename(filepath)
+
+    if name.startswith('_') or name.startswith('.'):
+        return False
+
+    if name in SAFE_FILES:
+        return False
+
+    _, ext = os.path.splitext(name)
+
+    # Build artifacts and test files by extension
+    if ext in BUILD_EXTENSIONS:
+        return True
+
+    # Extensionless binary detection
+    if ext != '':
+        return False
+
+    try:
+        with open(filepath, 'rb') as f:
+            header = f.read(2)
+            if header == b'#!':
+                return False
+    except (IOError, OSError):
+        pass
+
+    return True
