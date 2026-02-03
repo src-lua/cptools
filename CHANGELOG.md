@@ -1,0 +1,96 @@
+# CHANGELOG
+
+
+## v0.4.2 (2026-02-03)
+
+### Bug Fixes
+
+* fix: configure semantic release and pytest automation and fix some bugs
+
+bugfixes & python-semantic-release ([`2729300`](https://github.com/src-lua/cptools/commit/2729300022dcb9a1b7a2edf9e5d895f1d75eb80d))
+
+### Chores
+
+* chore(release): configure python-semantic-release and fix toml syntax ([`daa52f9`](https://github.com/src-lua/cptools/commit/daa52f9711791a16e0ffe25678d6f8f859240fdf))
+
+### Documentation
+
+* docs: makes contributing.md smaller and easier to read ([`c312c8f`](https://github.com/src-lua/cptools/commit/c312c8f7eaf496179f2025f39b600603c03959b6))
+
+### Refactoring
+
+* refactor: standardize all flags ([`8f99e8d`](https://github.com/src-lua/cptools/commit/8f99e8d3ead1985a83d395a5e58c77b13899adec))
+
+* refactor: remove hardcoded templates and make a template folder ([`97cbc2e`](https://github.com/src-lua/cptools/commit/97cbc2e3064d74720a44f686898aef6269bd5a46))
+
+* refactor: move some utilitaries from update to lib ([`c14dec5`](https://github.com/src-lua/cptools/commit/c14dec57cc01d5fae55439bb2d193321621ddf35))
+
+### Unknown
+
+* bugfix: rm now removes info.md if there's no .cpp left ([`90812b7`](https://github.com/src-lua/cptools/commit/90812b722c435d69476fabf4a13a1c42ef7d35ae))
+
+* bugfix: Now rm properly removes hashed files ([`a2e1fea`](https://github.com/src-lua/cptools/commit/a2e1feaf3329766dadc17f6939273f9dc02c273b))
+
+* bugfix: init --gitignore now ignores .gitignore too ([`92699b4`](https://github.com/src-lua/cptools/commit/92699b4158fe4243e78492441719e46f78cbd5bd))
+
+* bugfix: test_discovery now looks at lib/__init__.py ([`ce86be7`](https://github.com/src-lua/cptools/commit/ce86be7ab65439c2bfd80f795d82d0f3a2df6b8f))
+
+* bugfix: fixed mark and parsing casing ([`25f1f3f`](https://github.com/src-lua/cptools/commit/25f1f3f7d5375d47faf17e0ff4c73c6e4c47fa84))
+
+
+## v0.4.1 (2026-02-02)
+
+### Testing
+
+* test: Add comprehensive test suite ([`eb71a9c`](https://github.com/src-lua/cptools/commit/eb71a9c2844cfe704401a713582439f08844411d))
+
+
+## v0.4.0 (2026-02-02)
+
+### Refactoring
+
+* refactor: DRY ([`eb3a821`](https://github.com/src-lua/cptools/commit/eb3a82112df88b8523f47d5687c6f224147af83a))
+
+### Unknown
+
+* Release v0.4.0 ([`6a4bb74`](https://github.com/src-lua/cptools/commit/6a4bb74b5396453720eaa47aed64e1a61e339d96))
+
+
+## v0.3.0 (2026-01-31)
+
+### Unknown
+
+* Release v0.3.0 ([`6f4089b`](https://github.com/src-lua/cptools/commit/6f4089b52750c09bd95c8270557ee93d3ce3c932))
+
+
+## v0.2.0 (2026-01-31)
+
+### Unknown
+
+* Release v0.2.0
+
+New features:
+- Add custom test cases with  and
+- Add  flag for recursive clean (default is now non-recursive)
+- Improve HTML parsing for Codeforces samples
+- Better handling of test samples with gaps in numbering
+
+Breaking changes:
+-  command is now non-recursive by default (use  for recursive)
+
+Documentation:
+- Remove fetch beta notice
+- Update directory structure with Problemset and Yosupo
+- Add examples for new flags ([`6dba5cb`](https://github.com/src-lua/cptools/commit/6dba5cb6aef31292518d7e2ce2add0cd1eac0c53))
+
+
+## v0.1.0 (2026-01-29)
+
+### Unknown
+
+* CPTools initial commit ([`c34a6c0`](https://github.com/src-lua/cptools/commit/c34a6c089456306067e0aa54e344a7756b477cb1))
+
+* Initial commit: cptools - Competitive Programming Tools
+
+CLI tool for managing competitive programming contest repos.
+Commands: new, add, mark, status, clean, update. ([`15d9628`](https://github.com/src-lua/cptools/commit/15d962834594436d9c70a4be0760d2b5ce1720d4))
