@@ -50,7 +50,7 @@ def run():
         warning(f"Warning: '{new_status}' is not a standard status.")
         print(f"  Standard: {', '.join(VALID_STATUSES)}")
 
-    problems = parse_problem_range(problem_input.upper())
+    problems = parse_problem_range(problem_input)
 
     updated = 0
     for p in problems:

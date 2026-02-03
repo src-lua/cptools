@@ -5,8 +5,8 @@ Usage: cptools bundle <problem> [options]
 Bundle a solution by expanding local #include "..." directives into a single file.
 
 Options:
-  -o FILE       Write output to file
-  -i            Bundle in-place (overwrite source)
+  -o, --output FILE    Write output to file
+  -i, --in-place       Bundle in-place (overwrite source)
 
 Examples:
   cptools bundle A
@@ -133,8 +133,8 @@ def get_parser():
     """Creates and returns the argparse parser for the bundle command."""
     parser = argparse.ArgumentParser(description="Bundle a solution by expanding local #include directives.")
     parser.add_argument('problem', help='Problem ID')
-    parser.add_argument('-o', metavar='FILE', help='Write output to file')
-    parser.add_argument('-i', action='store_true', help='Bundle in-place (overwrite source)')
+    parser.add_argument('-o', '--output', metavar='FILE', dest='o', help='Write output to file')
+    parser.add_argument('-i', '--in-place', action='store_true', dest='i', help='Bundle in-place (overwrite source)')
     return parser
 
 def run():

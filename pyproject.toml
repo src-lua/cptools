@@ -1,0 +1,31 @@
+[project]
+name = "cptools"
+dynamic = ["version"]
+description = "CLI toolkit for managing competitive programming contests and solutions."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "Lua"}]
+dependencies = [
+    "pytest",
+    "pytest-cov",
+    # adicione outras dependências se houver
+]
+
+[tool.setuptools]
+# Aqui você diz ao Python para incluir as pastas lib e commands
+packages = ["lib", "commands"]
+
+[tool.semantic_release]
+version_variable = "cptools:__version__"
+tag_format = "v{version}"
+major_on_zero = false
+allow_zero_version = true
+upload_to_pypi = false
+upload_to_release = true
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
+
+[tool.semantic_release.commit_parser_options]
+major_on_zero = false

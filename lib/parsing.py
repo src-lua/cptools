@@ -25,6 +25,8 @@ def parse_problem_range(input_str):
         ['A', 'B', 'C']
         >>> parse_problem_range("A")
         ['A']
+        >>> parse_problem_range("abc123_a")
+        ['abc123_a']
     """
     # Handle ~ as range separator
     if '~' in input_str:
@@ -34,8 +36,19 @@ def parse_problem_range(input_str):
             start = ord(parts[0].strip().upper())
             end = ord(parts[1].strip().upper())
             return [chr(i) for i in range(start, end + 1)]
-    # Split by comma or space, and uppercase
-    return [p.upper() for p in input_str.replace(',', ' ').split()]
+
+    # Split by comma or space, preserving case
+    problems = input_str.replace(',', ' ').split()
+
+    # Uppercase only single-letter problem IDs for backward compatibility
+    result = []
+    for p in problems:
+        if len(p) == 1 and p.isalpha():
+            result.append(p.upper())
+        else:
+            result.append(p)
+
+    return result
 
 
 def parse_problem_url(url):

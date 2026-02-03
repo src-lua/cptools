@@ -49,6 +49,12 @@ def remove_problem(problem, directory):
         os.remove(binary)
         removed.append(problem)
 
+    # Remove .hashed file if it exists (Q21)
+    hashed_file = os.path.join(directory, f"{problem}.hashed")
+    if os.path.exists(hashed_file):
+        os.remove(hashed_file)
+        removed.append(f"{problem}.hashed")
+
     # Print what was removed
     if removed:
         success(f"  - {problem}.cpp")
@@ -87,10 +93,18 @@ def run():
     print()
     bold(f"Removed {removed_count}/{len(problems)} problem(s).")
 
-    # Update info.md if it exists
+    # Update info.md if there are still .cpp files remaining
     if removed_count > 0:
-        try:
-            from .update import generate_info_md
-            generate_info_md(directory)
-        except Exception:
-            pass
+        cpp_files = [f for f in os.listdir(directory) if f.endswith('.cpp')]
+        if cpp_files:
+            try:
+                from .update import generate_info_md
+                generate_info_md(directory)
+            except Exception:
+                pass
+        else:
+            # Remove info.md if it exists and no .cpp files remain
+            info_path = os.path.join(directory, "info.md")
+            if os.path.exists(info_path):
+                os.remove(info_path)
+                info("Removed info.md (no problems remaining)")

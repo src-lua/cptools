@@ -171,8 +171,12 @@ def test_get_or_compile_hasher_already_exists(tmp_path):
     hasher_bin = cache_dir / "hasher"
     hasher_src = cache_dir / "hasher.cpp"
 
+    # Read hasher source from template
+    with open(cmd_hash.HASHER_SOURCE_PATH, 'r') as f:
+        hasher_source = f.read()
+
     # Create existing files with correct source
-    hasher_src.write_text(cmd_hash.HASHER_SOURCE)
+    hasher_src.write_text(hasher_source)
     hasher_bin.write_text("fake binary")
 
     with patch('os.path.expanduser', return_value=str(home_dir)):

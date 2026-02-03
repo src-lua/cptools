@@ -12,19 +12,23 @@ Thank you for your interest in contributing to CPTools! We welcome contributions
 
 ### Setup
 
-1.  **Clone the repository:**
+1. **Clone the repository:**
+
     ```bash
     git clone https://github.com/src-lua/cptools.git
     cd cptools
     ```
 
-2.  **Install in development mode:**
+2. **Install in development mode:**
+
     ```bash
     ./install.sh
     ```
+
     This will install the tool and make your local changes available immediately.
 
-3.  **Test your installation:**
+3. **Test your installation:**
+
     ```bash
     cptools --help
     ```
@@ -33,36 +37,40 @@ Thank you for your interest in contributing to CPTools! We welcome contributions
 
 ### 1. Find or Propose an Issue
 
--   **Find an existing issue:** Check the [issue tracker](https://github.com/your-username/cptools/issues) for bugs or features to work on. Look for issues tagged `good first issue` if you're new.
--   **Propose a new feature:** If you have an idea, please [open an issue](https://github.com/your-username/cptools/issues/new) to discuss it first.
+- **Find an existing issue:** Check the [issue tracker](https://github.com/your-username/cptools/issues) for bugs or features to work on. Look for issues tagged `good first issue` if you're new.
+- **Propose a new feature:** If you have an idea, please [open an issue](https://github.com/your-username/cptools/issues/new) to discuss it first.
 
 ### 2. Make Your Changes
 
-1.  **Create a new branch:**
+1. **Create a new branch:**
+
     ```bash
     git checkout -b feature/my-new-feature
     ```
 
-2.  **Write your code.** Follow the guidelines below when making changes.
+2. **Write your code.** Follow the guidelines below when making changes.
 
-3.  **Test your changes:**
+3. **Test your changes:**
     - Run automated tests: `pytest`
     - Manually test your changes to ensure they work as expected.
 
 ### 3. Submit a Pull Request
 
-1.  **Commit your changes** with a clear message:
+1. **Commit your changes** with a clear message:
+
     ```bash
     git commit -m "feat: Add new command for hashing"
     ```
+
     We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
 
-2.  **Push to your branch:**
+2. **Push to your branch:**
+
     ```bash
     git push origin feature/my-new-feature
     ```
 
-3.  **Open a Pull Request** on GitHub.
+3. **Open a Pull Request** on GitHub.
 
 ## Development Guidelines
 
@@ -70,28 +78,79 @@ Thank you for your interest in contributing to CPTools! We welcome contributions
 
 If you're adding a new command, follow this checklist:
 
--   [ ] Create a new file `commands/<name>.py`.
--   [ ] Implement `get_parser()` and `run()` functions.
--   [ ] Register the command in the `__init__.py` on commands folder.
--   [ ] Add generated files to `.gitignore` and `commands/init.py` if needed.
--   [ ] Add tests for the new command in `tests/test_cmd_<name>.py`.
+- [ ] Create a new file `commands/<name>.py`.
+- [ ] Implement `get_parser()` and `run()` functions.
+- [ ] Register the command in the `__init__.py` on commands folder.
+- [ ] Add generated files to `.gitignore` and `commands/init.py` if needed.
+- [ ] Add tests for the new command in `tests/test_cmd_<name>.py`.
 
 For a detailed example, look at existing commands like `commands/hash.py`.
 
+### Flag Naming Conventions
+
+To ensure consistency across all commands, follow these flag naming standards:
+
+#### General Rules
+
+1. **Boolean Flags:**
+   - Always provide both short (`-x`) and long (`--flag-name`) forms when possible
+   - Use lowercase single letters for short forms
+   - Use kebab-case for long forms (words separated by hyphens)
+
+2. **Common Flag Conventions:**
+   - `-a, --all`: Batch operations on all items/directories
+   - `-r, --recursive`: Recursive operations
+   - `-o, --output FILE`: Output to a file
+   - `-i, --in-place`: Modify files in place
+   - `-f, --fetch`: Fetch or download data
+
+3. **Negation Flags:**
+   - Use `--no-*` format (e.g., `--no-git`, `--no-out`)
+   - Never omit the hyphen (e.g., `--nogit` is incorrect)
+
+#### Examples
+
+**Good:**
+
+```python
+parser.add_argument('-a', '--all', action='store_true', help='Process all items')
+parser.add_argument('-r', '--recursive', action='store_true', dest='r', help='Recursive mode')
+parser.add_argument('-o', '--output', metavar='FILE', dest='o', help='Output file')
+parser.add_argument('--no-git', action='store_true', dest='no_git', help='Skip git')
+```
+
+**Bad:**
+
+```python
+parser.add_argument('--all', action='store_true')  # Missing short form
+parser.add_argument('-r', action='store_true')  # Missing long form
+parser.add_argument('--nogit', action='store_true')  # Should be --no-git
+```
+
+#### dest Parameter
+
+When providing both short and long forms, use the `dest` parameter to maintain backward compatibility with existing code:
+
+```python
+# This ensures args.r works even though we now have --recursive
+parser.add_argument('-r', '--recursive', dest='r', action='store_true')
+```
+
 ### Code Style
 
--   Follow **PEP 8** conventions.
--   Use clear, meaningful variable names.
--   Keep functions small and focused.
+- Follow **PEP 8** conventions.
+- Use clear, meaningful variable names.
+- Keep functions small and focused.
 
 ### Output: STDERR vs. STDOUT
 
 A critical rule for this project is to separate logging from data output.
 
--   **Use `sys.stderr` for:** logs, status messages, progress indicators, errors, and any colored or formatted text.
--   **Use `sys.stdout` (the default for `print()`) for:** raw data that can be redirected or piped to another command.
+- **Use `sys.stderr` for:** logs, status messages, progress indicators, errors, and any colored or formatted text.
+- **Use `sys.stdout` (the default for `print()`) for:** raw data that can be redirected or piped to another command.
 
 **Good Example:**
+
 ```python
 import sys
 from lib.io import error, success

@@ -14,7 +14,7 @@ Examples:
 import os
 import sys
 import argparse
-from .update import get_status_emoji
+from lib.display_utils import get_status_emoji
 from lib.fileops import read_problem_header
 from lib.io import error, warning, Colors, log
 

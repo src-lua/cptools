@@ -29,7 +29,7 @@ from lib.judges import ALL_JUDGES
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = get_repo_root()
-TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "..", "template.cpp")
+TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "..", "lib", "templates", "template.cpp")
 
 
 def get_input(prompt, default=None):

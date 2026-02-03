@@ -27,7 +27,7 @@ from lib import (
 from lib.io import error, success, warning, log
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "..", "template.cpp")
+TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "..", "lib", "templates", "template.cpp")
 
 
 def add_from_url(url, autofetch):
