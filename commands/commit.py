@@ -6,12 +6,12 @@ Commit and push contest or problem changes.
 Stages changes, commits with default message, and pushes to remote.
 
 Options:
-  --all         Commit all changed contests in the repository
+  -a, --all     Commit all changed contests in the repository
 
 Examples:
   cptools commit
   cptools commit Codeforces/1234
-  cptools commit --all
+  cptools commit -a
 """
 import os
 import sys
@@ -95,7 +95,7 @@ def get_parser():
     """Creates and returns the argparse parser for the commit command."""
     parser = argparse.ArgumentParser(description="Commit and push contest or problem changes.")
     parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory')
-    parser.add_argument('--all', action='store_true', help='Commit all changed contests in the repository')
+    parser.add_argument('-a', '--all', action='store_true', help='Commit all changed contests in the repository')
     return parser
 
 def run():

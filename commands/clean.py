@@ -5,13 +5,13 @@ Usage: cptools clean [directory] [options]
 Delete compiled binaries and build artifacts from contest directories.
 
 Options:
-  -r            Recursive clean (subdirectories)
-  --all         Clean all platform directories in the repo
+  -r, --recursive    Recursive clean (subdirectories)
+  -a, --all          Clean all platform directories in the repo
 
 Examples:
   cptools clean
   cptools clean -r
-  cptools clean --all
+  cptools clean -a
 """
 import os
 import sys
@@ -52,8 +52,8 @@ def get_parser():
     """Creates and returns the argparse parser for the clean command."""
     parser = argparse.ArgumentParser(description="Delete compiled binaries and build artifacts from contest directories.")
     parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory (default: current)')
-    parser.add_argument('-r', action='store_true', help='Recursive clean (subdirectories)')
-    parser.add_argument('--all', action='store_true', help='Clean all platform directories in the repo')
+    parser.add_argument('-r', '--recursive', action='store_true', dest='r', help='Recursive clean (subdirectories)')
+    parser.add_argument('-a', '--all', action='store_true', help='Clean all platform directories in the repo')
     return parser
 
 def run():

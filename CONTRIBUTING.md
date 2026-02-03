@@ -86,6 +86,56 @@ If you're adding a new command, follow this checklist:
 
 For a detailed example, look at existing commands like `commands/hash.py`.
 
+### Flag Naming Conventions
+
+To ensure consistency across all commands, follow these flag naming standards:
+
+#### General Rules
+
+1. **Boolean Flags:**
+   - Always provide both short (`-x`) and long (`--flag-name`) forms when possible
+   - Use lowercase single letters for short forms
+   - Use kebab-case for long forms (words separated by hyphens)
+
+2. **Common Flag Conventions:**
+   - `-a, --all`: Batch operations on all items/directories
+   - `-r, --recursive`: Recursive operations
+   - `-o, --output FILE`: Output to a file
+   - `-i, --in-place`: Modify files in place
+   - `-f, --fetch`: Fetch or download data
+
+3. **Negation Flags:**
+   - Use `--no-*` format (e.g., `--no-git`, `--no-out`)
+   - Never omit the hyphen (e.g., `--nogit` is incorrect)
+
+#### Examples
+
+**Good:**
+
+```python
+parser.add_argument('-a', '--all', action='store_true', help='Process all items')
+parser.add_argument('-r', '--recursive', action='store_true', dest='r', help='Recursive mode')
+parser.add_argument('-o', '--output', metavar='FILE', dest='o', help='Output file')
+parser.add_argument('--no-git', action='store_true', dest='no_git', help='Skip git')
+```
+
+**Bad:**
+
+```python
+parser.add_argument('--all', action='store_true')  # Missing short form
+parser.add_argument('-r', action='store_true')  # Missing long form
+parser.add_argument('--nogit', action='store_true')  # Should be --no-git
+```
+
+#### dest Parameter
+
+When providing both short and long forms, use the `dest` parameter to maintain backward compatibility with existing code:
+
+```python
+# This ensures args.r works even though we now have --recursive
+parser.add_argument('-r', '--recursive', dest='r', action='store_true')
+```
+
 ### Code Style
 
 - Follow **PEP 8** conventions.

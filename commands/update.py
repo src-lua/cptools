@@ -5,11 +5,11 @@ Usage: cptools update [directory] [options]
 Generate or update info.md status file for the contest directory.
 
 Options:
-  --all         Update all contest directories in the repository
+  -a, --all     Update all contest directories in the repository
 
 Examples:
   cptools update
-  cptools update --all
+  cptools update -a
 """
 import os
 import sys
@@ -151,7 +151,7 @@ def get_parser():
     """Creates and returns the argparse parser for the update command."""
     parser = argparse.ArgumentParser(description="Generate or update info.md status file for the contest directory.")
     parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory (default: current)')
-    parser.add_argument('--all', action='store_true', help='Update all contest directories in the repository')
+    parser.add_argument('-a', '--all', action='store_true', help='Update all contest directories in the repository')
     return parser
 
 def run():

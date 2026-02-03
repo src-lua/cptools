@@ -6,12 +6,12 @@ Initialize a new competitive programming repository.
 Creates platform directories, .gitignore, and ensures config exists.
 
 Options:
-  --nogit       Skip git initialization
+  --no-git      Skip git initialization
 
 Examples:
   cptools init
   cptools init my-cp-repo
-  cptools init --nogit
+  cptools init --no-git
 """
 import os
 import sys
@@ -31,7 +31,7 @@ def get_parser():
     """Creates and returns the argparse parser for the init command."""
     parser = argparse.ArgumentParser(description="Initialize a new competitive programming repository.")
     parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory')
-    parser.add_argument('--nogit', action='store_true', help='Skip git initialization')
+    parser.add_argument('--no-git', action='store_true', dest='no_git', help='Skip git initialization')
     return parser
 
 def run():
@@ -55,7 +55,7 @@ def run():
             warning(f"    {d}/ (already exists)")
 
     # Create .gitignore (only if git is enabled)
-    if not args.nogit:
+    if not args.no_git:
         gitignore_path = os.path.join(directory, ".gitignore")
         if not os.path.exists(gitignore_path):
             # Read from template
@@ -68,7 +68,7 @@ def run():
             warning("    .gitignore (already exists)")
 
     # Git init if not already a repo
-    if not args.nogit:
+    if not args.no_git:
         git_dir = os.path.join(directory, ".git")
         if not os.path.exists(git_dir):
             result = subprocess.run(

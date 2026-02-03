@@ -32,23 +32,23 @@ def test_init_creates_structure(tmp_path):
         assert args[1] == 'init'
 
 def test_init_nogit(tmp_path):
-    """Test initialization with --nogit."""
+    """Test initialization with --no-git."""
     target_dir = str(tmp_path)
 
     with patch('commands.init.ensure_config'), \
          patch('subprocess.run') as mock_run:
 
-        with patch('sys.argv', ['cptools-init', target_dir, '--nogit']):
+        with patch('sys.argv', ['cptools-init', target_dir, '--no-git']):
             init.run()
 
         # Git init should not be called
         mock_run.assert_not_called()
 
-        # .gitignore should NOT be created when --nogit is used (Q11 fix)
+        # .gitignore should NOT be created when --no-git is used (Q11 fix)
         assert not os.path.exists(os.path.join(target_dir, ".gitignore"))
 
 def test_init_without_nogit_creates_gitignore(tmp_path):
-    """Test that .gitignore is created when --nogit is NOT used (Q11)."""
+    """Test that .gitignore is created when --no-git is NOT used (Q11)."""
     target_dir = str(tmp_path)
 
     with patch('commands.init.ensure_config'), \
@@ -59,7 +59,7 @@ def test_init_without_nogit_creates_gitignore(tmp_path):
         with patch('sys.argv', ['cptools-init', target_dir]):
             init.run()
 
-        # .gitignore SHOULD be created when --nogit is NOT used
+        # .gitignore SHOULD be created when --no-git is NOT used
         gitignore_path = os.path.join(target_dir, ".gitignore")
         assert os.path.exists(gitignore_path)
 
