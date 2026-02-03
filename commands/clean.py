@@ -52,7 +52,7 @@ def get_parser():
     """Creates and returns the argparse parser for the clean command."""
     parser = argparse.ArgumentParser(description="Delete compiled binaries and build artifacts from contest directories.")
     parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory (default: current)')
-    parser.add_argument('-r', '--recursive', action='store_true', dest='r', help='Recursive clean (subdirectories)')
+    parser.add_argument('-r', '--recursive', action='store_true', dest='recursive', help='Recursive clean (subdirectories)')
     parser.add_argument('-a', '--all', action='store_true', help='Clean all platform directories in the repo')
     return parser
 
@@ -68,7 +68,7 @@ def run():
                 total += clean_directory(path, recursive=True)
         bold(f"\nRemoved {total} file(s).")
     else:
-        recursive = args.r
+        recursive = args.recursive
         directory = args.directory
         if not os.path.isdir(directory):
             error(f"Error: {directory} is not a valid directory.")
