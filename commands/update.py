@@ -20,78 +20,8 @@ from pathlib import Path
 
 from lib.fileops import read_problem_header, get_repo_root, PLATFORM_DIRS
 from lib.io import error, success, warning, info, header, bold
-
-def get_status_emoji(status):
-    """Map status to emoji."""
-    status_lower = status.lower().strip()
-
-    # Pending / Not attempted
-    if status_lower in ['~', 'pending', 'not attempted', '']:
-        return '⬜'
-
-    # Solved/Accepted
-    elif status_lower in ['solved', 'accepted', 'ac']:
-        return '✅'
-
-    # In Progress
-    elif status_lower in ['attempting', 'in progress', 'wip']:
-        return '🔄'
-
-    # Wrong Answer
-    elif status_lower in ['wa', 'wrong answer']:
-        return '⚠️'
-
-    # Time Limit Exceeded
-    elif status_lower in ['tle', 'time limit', 'time limit exceeded']:
-        return '⏱️'
-
-    # Memory Limit Exceeded
-    elif status_lower in ['mle', 'memory limit', 'memory limit exceeded']:
-        return '💾'
-
-    # Runtime Error
-    elif status_lower in ['re', 'runtime error']:
-        return '💥'
-
-    # Not solved / Unsolved
-    else:
-        return '❌'
-
-def detect_platform_from_path(path):
-    """Detect contest platform from directory structure."""
-    parts = Path(path).parts
-
-    platform_map = {
-        'Trainings': 'Trainings',
-        'Codeforces': 'Codeforces',
-        'vJudge': 'vJudge',
-        'AtCoder': 'AtCoder',
-        'Yosupo': 'Yosupo',
-        'Other': 'Other',
-    }
-
-    # Check for Codeforces/Gym (nested platform dir)
-    if 'Codeforces' in parts:
-        idx = parts.index('Codeforces')
-        if idx + 1 < len(parts) and parts[idx + 1] == 'Gym':
-            if idx + 2 < len(parts):
-                return 'Codeforces Gym', parts[idx + 2]
-            return 'Codeforces Gym', Path(path).name
-
-    # Other/ uses the subfolder name as the display name
-    if 'Other' in parts:
-        idx = parts.index('Other')
-        if idx + 1 < len(parts):
-            name = parts[idx + 1]
-            return name, name
-
-    for key, label in platform_map.items():
-        if key in parts:
-            idx = parts.index(key)
-            if idx + 1 < len(parts):
-                return label, parts[idx + 1]
-
-    return 'Contest', Path(path).name
+from lib.display_utils import get_status_emoji
+from lib.path_utils import detect_platform_from_path
 
 def generate_info_md(directory):
     """Generate or update info.md for the contest directory."""

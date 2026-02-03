@@ -101,6 +101,16 @@ from .config import (
     get_config_path,
 )
 
+# Display utilities
+from .display_utils import (
+    get_status_emoji,
+)
+
+# Path utilities
+from .path_utils import (
+    detect_platform_from_path,
+)
+
 # Command modules registry
 def get_command_modules():
     """
@@ -188,6 +198,10 @@ __all__ = [
     'load_config',
     'ensure_config',
     'get_config_path',
+    # Display utilities
+    'get_status_emoji',
+    # Path utilities
+    'detect_platform_from_path',
     # Commands
     'get_command_modules',
 ]
