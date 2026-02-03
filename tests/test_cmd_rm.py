@@ -67,8 +67,9 @@ def test_remove_preserves_other_files(tmp_path):
     rm.remove_problem("C", temp_dir)
 
     assert not os.path.exists(os.path.join(temp_dir, "C.cpp"))
-    # .hashed files are NOT removed by rm command
-    assert os.path.exists(os.path.join(temp_dir, "C.hashed"))
+    # .hashed files ARE removed by rm command (Q21)
+    assert not os.path.exists(os.path.join(temp_dir, "C.hashed"))
+    # Unrelated files are preserved
     assert os.path.exists(os.path.join(temp_dir, "README.md"))
 
 
@@ -133,3 +134,56 @@ def test_remove_preserves_hidden_files(tmp_path):
     assert not os.path.exists(os.path.join(temp_dir, "G.cpp"))
     # Hidden binary files are NOT removed by rm command
     assert os.path.exists(os.path.join(temp_dir, ".G"))
+
+
+def test_remove_hashed_files(tmp_path):
+    """Test that .hashed files are removed (Q21 fix)."""
+    temp_dir = str(tmp_path)
+
+    # Create problem file and its .hashed file
+    with open(os.path.join(temp_dir, "H.cpp"), 'w') as f:
+        f.write("code")
+    with open(os.path.join(temp_dir, "H.hashed"), 'w') as f:
+        f.write("abc line1\ndef line2\n")
+
+    # Verify both exist before removal
+    assert os.path.exists(os.path.join(temp_dir, "H.cpp"))
+    assert os.path.exists(os.path.join(temp_dir, "H.hashed"))
+
+    # Remove problem
+    rm.remove_problem("H", temp_dir)
+
+    # Both should be removed
+    assert not os.path.exists(os.path.join(temp_dir, "H.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "H.hashed"))
+
+
+def test_remove_problem_with_all_artifacts(tmp_path):
+    """Test removing problem with all possible artifacts (Q21)."""
+    temp_dir = str(tmp_path)
+
+    # Create all types of files
+    files_to_create = {
+        "I.cpp": "code",
+        "I": "binary",
+        "I.hashed": "hashes",
+        "I_1.in": "input 1",
+        "I_1.out": "output 1",
+        "I_2.in": "input 2",
+        "I_2.out": "output 2",
+    }
+
+    for filename, content in files_to_create.items():
+        with open(os.path.join(temp_dir, filename), 'w') as f:
+            f.write(content)
+
+    # Verify all exist
+    for filename in files_to_create:
+        assert os.path.exists(os.path.join(temp_dir, filename))
+
+    # Remove problem
+    rm.remove_problem("I", temp_dir)
+
+    # All should be removed
+    for filename in files_to_create:
+        assert not os.path.exists(os.path.join(temp_dir, filename))

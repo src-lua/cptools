@@ -49,6 +49,12 @@ def remove_problem(problem, directory):
         os.remove(binary)
         removed.append(problem)
 
+    # Remove .hashed file if it exists (Q21)
+    hashed_file = os.path.join(directory, f"{problem}.hashed")
+    if os.path.exists(hashed_file):
+        os.remove(hashed_file)
+        removed.append(f"{problem}.hashed")
+
     # Print what was removed
     if removed:
         success(f"  - {problem}.cpp")
