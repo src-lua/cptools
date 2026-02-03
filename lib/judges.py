@@ -205,7 +205,7 @@ class AtCoderJudge(Judge):
             matches = re.findall(pattern, html, re.DOTALL)
 
             for task_id, _, name in matches:
-                # Extract letter from task_id (e.g., "abc300_a" -> "a")
+                # Extract letter from task_id (e.g., "abc300_a" -> "A")
                 letter = task_id.split('_')[-1].upper() if '_' in task_id else task_id
                 problems[letter] = name.strip()
 
