@@ -303,7 +303,24 @@ def find_file_case_insensitive(directory, target):
     return None
 
 
-PLATFORM_DIRS = ['Trainings', 'Codeforces', 'vJudge', 'AtCoder', 'Yosupo', 'CSES', 'Other']
+def get_platform_dirs():
+    """
+    Get list of top-level platform directories for walking/scanning.
+
+    This returns only the main platform directories (not subdirectories)
+    used by commands like clean, commit, and update that walk the repository.
+
+    Returns:
+        List of top-level platform directory names
+    """
+    from lib.judges import ALL_JUDGES
+    platform_names = [judge.platform_name for judge in ALL_JUDGES]
+    return platform_names + ['Trainings', 'Other']
+
+
+# For backwards compatibility, keep PLATFORM_DIRS as a dynamic call
+# Commands that need subdirectories should import get_platform_directories from lib.judges
+PLATFORM_DIRS = get_platform_dirs()
 
 SAFE_FILES = {'LICENSE', 'Makefile', 'CNAME', 'README'}
 
