@@ -133,8 +133,8 @@ def get_parser():
     """Creates and returns the argparse parser for the bundle command."""
     parser = argparse.ArgumentParser(description="Bundle a solution by expanding local #include directives.")
     parser.add_argument('problem', help='Problem ID')
-    parser.add_argument('-o', '--output', metavar='FILE', dest='o', help='Write output to file')
-    parser.add_argument('-i', '--in-place', action='store_true', dest='i', help='Bundle in-place (overwrite source)')
+    parser.add_argument('-o', '--output', metavar='FILE', dest='output', help='Write output to file')
+    parser.add_argument('-i', '--in-place', action='store_true', dest='in_place', help='Bundle in-place (overwrite source)')
     return parser
 
 def run():
@@ -142,8 +142,8 @@ def run():
     args = parser.parse_args()
 
     problem = args.problem.replace('.cpp', '')
-    inplace = args.i
-    output_file = args.o
+    inplace = args.in_place
+    output_file = args.output
 
 
     source = os.path.join(os.getcwd(), f"{problem}.cpp")

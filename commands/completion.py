@@ -1,4 +1,23 @@
 #!/usr/bin/env python3
+"""
+Usage: cptools completion [options]
+
+Generate and install shell completion scripts for bash and zsh.
+
+Options:
+  --install       Install completion for your current shell (auto-detected)
+  --shell SHELL   Output completion script for specific shell (bash or zsh)
+
+Examples:
+  cptools completion --install        # Install for current shell
+  cptools completion --shell bash     # Generate bash completion script
+  cptools completion --shell zsh      # Generate zsh completion script
+
+Installation:
+  1. Run: cptools completion --install
+  2. Restart your shell
+  3. Enjoy tab completion for all cptools commands and flags!
+"""
 import os
 import sys
 import re

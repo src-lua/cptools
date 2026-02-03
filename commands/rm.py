@@ -8,10 +8,16 @@ Arguments:
   problem       Problem ID(s) to remove (e.g. A, B, dp_a)
   directory     Target directory (default: current)
 
+Note:
+  If the last argument is a directory path, it will be treated as
+  the target directory. Otherwise, all arguments are treated as
+  problem IDs and the current directory is used.
+
 Examples:
-  cptools rm A
-  cptools rm dp_a dp_b
-  cptools rm 1636
+  cptools rm A                        # Remove A from current directory
+  cptools rm dp_a dp_b                # Remove multiple problems from current directory
+  cptools rm A B /path/to/contest     # Remove A and B from specific directory
+  cptools rm 1636                     # Remove problem 1636 from current directory
 """
 import os
 import argparse

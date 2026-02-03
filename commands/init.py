@@ -18,7 +18,7 @@ import sys
 import argparse
 import subprocess
 
-from lib.fileops import PLATFORM_DIRS
+from lib.judges import get_platform_directories
 from lib.config import ensure_config, get_config_path
 from lib.io import success, warning, info, header, bold
 
@@ -44,8 +44,8 @@ def run():
 
     os.makedirs(directory, exist_ok=True)
 
-    # Create platform directories
-    dirs_to_create = PLATFORM_DIRS + ['Codeforces/Gym', 'Codeforces/Problemset', 'AtCoder/Problemset']
+    # Create platform directories (get all including subdirectories)
+    dirs_to_create = get_platform_directories()
     for d in dirs_to_create:
         path = os.path.join(directory, d)
         if not os.path.exists(path):

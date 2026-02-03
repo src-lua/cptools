@@ -9,11 +9,16 @@ Arguments:
   status        Status code (AC, WA, TLE, MLE, RE, WIP, ~) [default: AC]
   directory     Target directory (default: current)
 
+Note:
+  If only one extra argument is provided and it's a directory path,
+  it will be treated as the directory and status will default to AC.
+
 Examples:
-  cptools mark A
-  cptools mark A AC
-  cptools mark B WA /path/to/contest
-  cptools mark A~E AC
+  cptools mark A                        # Mark A as AC in current directory
+  cptools mark A AC                     # Mark A as AC explicitly
+  cptools mark A /path/to/contest       # Mark A as AC in specific directory
+  cptools mark B WA /path/to/contest    # Mark B as WA in specific directory
+  cptools mark A~E AC                   # Mark range A to E as AC
 """
 import os
 import sys

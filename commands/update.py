@@ -23,6 +23,34 @@ from lib.io import error, success, warning, info, header, bold
 from lib.display_utils import get_status_emoji
 from lib.path_utils import detect_platform_from_path
 
+def is_problemset(platform, directory_path):
+    """
+    Determine if this is a problemset (permanent collection) vs contest (time-based event).
+
+    Logic:
+    - CSES, Yosupo: Always problemsets
+    - Any path containing "/Problemset/": Problemset (e.g., Codeforces/Problemset, AtCoder/Problemset)
+    - Everything else: Contest
+
+    Args:
+        platform: Platform name from detect_platform_from_path
+        directory_path: Full directory path
+
+    Returns:
+        True if problemset, False if contest
+    """
+    # Pure problemset platforms
+    if platform in ['CSES', 'Yosupo']:
+        return True
+
+    # Any platform with "/Problemset/" in path is a problemset
+    if '/Problemset/' in directory_path or directory_path.endswith('/Problemset'):
+        return True
+
+    # Everything else is a contest
+    return False
+
+
 def generate_info_md(directory):
     """Generate or update info.md for the contest directory."""
     directory = os.path.abspath(directory)
@@ -59,6 +87,7 @@ def generate_info_md(directory):
 
     # Detect platform and contest
     platform, contest_id = detect_platform_from_path(directory)
+    is_pset = is_problemset(platform, directory)
 
     # Generate markdown content
     content = f"# {platform}"
@@ -66,31 +95,32 @@ def generate_info_md(directory):
         content += f" - {contest_id}"
     content += "\n\n"
 
-    # Add contest link if available (extract from first problem link)
-    if problems[0]['link']:
-        first_link = problems[0]['link']
-        if 'codeforces.com/group' in first_link:
-            match = re.search(r'codeforces\.com/group/([^/]+)/contest/(\d+)', first_link)
-            if match:
-                content += f"**Contest**: [Codeforces Group]({first_link.rsplit('/problem/', 1)[0]})\n\n"
-        elif 'codeforces.com/contest' in first_link:
-            contest_url = first_link.rsplit('/problem/', 1)[0]
-            content += f"**Contest**: [Codeforces]({contest_url})\n\n"
-        elif 'vjudge.net' in first_link:
-            contest_url = first_link.rsplit('#problem/', 1)[0]
-            content += f"**Contest**: [vJudge]({contest_url})\n\n"
-        elif 'atcoder.jp' in first_link:
-            match = re.search(r'atcoder\.jp/contests/([^/]+)', first_link)
-            if match:
-                content += f"**Contest**: [AtCoder](https://atcoder.jp/contests/{match.group(1)})\n\n"
-        elif 'judge.yosupo.jp' in first_link:
-            content += f"**Judge**: [Yosupo Library Checker](https://judge.yosupo.jp)\n\n"
+    # For contests only: add contest link and created date
+    # For problemsets: skip contest metadata (individual problems have their own links)
+    if not is_pset:
+        # Add contest link if available (extract from first problem link)
+        if problems[0]['link']:
+            first_link = problems[0]['link']
+            if 'codeforces.com/group' in first_link:
+                match = re.search(r'codeforces\.com/group/([^/]+)/contest/(\d+)', first_link)
+                if match:
+                    content += f"**Contest**: [Codeforces Group]({first_link.rsplit('/problem/', 1)[0]})\n\n"
+            elif 'codeforces.com/contest' in first_link:
+                contest_url = first_link.rsplit('/problem/', 1)[0]
+                content += f"**Contest**: [Codeforces]({contest_url})\n\n"
+            elif 'vjudge.net' in first_link:
+                contest_url = first_link.rsplit('#problem/', 1)[0]
+                content += f"**Contest**: [vJudge]({contest_url})\n\n"
+            elif 'atcoder.jp' in first_link:
+                match = re.search(r'atcoder\.jp/contests/([^/]+)', first_link)
+                if match:
+                    content += f"**Contest**: [AtCoder](https://atcoder.jp/contests/{match.group(1)})\n\n"
 
-    # Add created date (from first problem or current time)
-    created = problems[0]['created'] if problems[0]['created'] else datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    content += f"**Created**: {created}\n\n"
+        # Add created date for contests
+        created = problems[0]['created'] if problems[0]['created'] else datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        content += f"**Created**: {created}\n\n"
 
-    # Statistics
+    # Statistics (for both contest and problemset)
     solved_count = sum(1 for p in problems if p['status'].lower() in ['solved', 'accepted', 'ac'])
     content += f"**Progress**: {solved_count}/{len(problems)} solved\n\n"
 

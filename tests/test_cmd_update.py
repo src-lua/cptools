@@ -59,5 +59,117 @@ def test_update_all(tmp_path):
          patch('sys.argv', ['cptools-update', '--all']):
         
         update.run()
-        
+
     assert os.path.exists(os.path.join(cf_dir, "info.md"))
+
+def test_update_contest_format(tmp_path):
+    """Test that contest directories generate info.md with contest metadata."""
+    # Create a contest directory (Codeforces/123)
+    contest_dir = tmp_path / "Codeforces" / "123"
+    contest_dir.mkdir(parents=True)
+
+    # Create problem with contest link
+    problem_file = contest_dir / "A.cpp"
+    problem_file.write_text(
+        "/**\n"
+        " * Problem: Test Problem A\n"
+        " * Status: AC\n"
+        " * Link: https://codeforces.com/contest/123/problem/A\n"
+        " * Created: 01-01-2024 12:00:00\n"
+        " */"
+    )
+
+    with patch('sys.argv', ['cptools-update', str(contest_dir)]):
+        update.run()
+
+    info_md = contest_dir / "info.md"
+    assert info_md.exists()
+
+    content = info_md.read_text()
+
+    # Contest format should have:
+    # 1. Contest link
+    assert "**Contest**:" in content
+    assert "https://codeforces.com/contest/123" in content
+
+    # 2. Created date
+    assert "**Created**:" in content
+    assert "01-01-2024 12:00:00" in content
+
+    # 3. Progress
+    assert "**Progress**: 1/1 solved" in content
+
+def test_update_problemset_format(tmp_path):
+    """Test that problemset directories generate info.md without contest metadata."""
+    # Create a problemset directory (CSES)
+    problemset_dir = tmp_path / "CSES" / "dynamic_programming"
+    problemset_dir.mkdir(parents=True)
+
+    # Create problems
+    for i, (problem_id, status) in enumerate([("1636", "AC"), ("1158", "~")]):
+        problem_file = problemset_dir / f"{problem_id}.cpp"
+        problem_file.write_text(
+            f"/**\n"
+            f" * Problem: Coin Combinations {i+1}\n"
+            f" * Status: {status}\n"
+            f" * Link: https://cses.fi/problemset/task/{problem_id}\n"
+            f" * Created: 01-01-2024 12:00:00\n"
+            f" */"
+        )
+
+    # Mock detect_platform_from_path to return CSES
+    with patch('sys.argv', ['cptools-update', str(problemset_dir)]), \
+         patch('commands.update.detect_platform_from_path', return_value=('CSES', 'dynamic_programming')):
+        update.run()
+
+    info_md = problemset_dir / "info.md"
+    assert info_md.exists()
+
+    content = info_md.read_text()
+
+    # Problemset format should NOT have:
+    # 1. Contest link
+    assert "**Contest**:" not in content
+
+    # 2. Created date
+    assert "**Created**:" not in content
+
+    # Problemset format SHOULD have:
+    # 3. Progress
+    assert "**Progress**: 1/2 solved" in content
+
+    # 4. Individual problem links
+    assert "https://cses.fi/problemset/task/1636" in content
+    assert "https://cses.fi/problemset/task/1158" in content
+
+def test_update_codeforces_problemset_format(tmp_path):
+    """Test that Codeforces/Problemset directories are treated as problemsets."""
+    # Create Codeforces Problemset directory
+    problemset_dir = tmp_path / "Codeforces" / "Problemset" / "dp"
+    problemset_dir.mkdir(parents=True)
+
+    # Create problem
+    problem_file = problemset_dir / "1234A.cpp"
+    problem_file.write_text(
+        "/**\n"
+        " * Problem: DP Problem\n"
+        " * Status: AC\n"
+        " * Link: https://codeforces.com/problemset/problem/1234/A\n"
+        " * Created: 01-01-2024 12:00:00\n"
+        " */"
+    )
+
+    # Mock detect_platform_from_path to return Codeforces Problemset
+    with patch('sys.argv', ['cptools-update', str(problemset_dir)]), \
+         patch('commands.update.detect_platform_from_path', return_value=('Codeforces Problemset', 'dp')):
+        update.run()
+
+    info_md = problemset_dir / "info.md"
+    assert info_md.exists()
+
+    content = info_md.read_text()
+
+    # Should be treated as problemset (no contest metadata)
+    assert "**Contest**:" not in content
+    assert "**Created**:" not in content
+    assert "**Progress**: 1/1 solved" in content

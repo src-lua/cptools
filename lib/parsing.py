@@ -183,7 +183,7 @@ def parse_contest_url(url):
     problem_match = re.search(r'(?:problem/|tasks/[^/]+_)([A-Za-z])', url)
     default_range = None
     if problem_match:
-        problem_char = problem_match.group(1).upper()
+        problem_char = problem_match.group(1)
         default_range = f"A~{problem_char}"
 
     # Codeforces group/training: codeforces.com/group/{id}/contest/{id}

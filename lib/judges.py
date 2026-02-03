@@ -205,7 +205,7 @@ class AtCoderJudge(Judge):
             matches = re.findall(pattern, html, re.DOTALL)
 
             for task_id, _, name in matches:
-                # Extract letter from task_id (e.g., "abc300_a" -> "a")
+                # Extract letter from task_id (e.g., "abc300_a" -> "A")
                 letter = task_id.split('_')[-1].upper() if '_' in task_id else task_id
                 problems[letter] = name.strip()
 
@@ -347,6 +347,44 @@ ALL_JUDGES: List[Judge] = [
     YosupoJudge(),
     VJudgeJudge(),
 ]
+
+
+def get_platform_directories() -> List[str]:
+    """
+    Get list of all platform directories used in the repository.
+
+    Returns a list of directory names including:
+    - Top-level platform directories for each judge
+    - Subdirectories for platforms with multiple problemsets
+    - Special directories (Trainings, Other)
+
+    This function centralizes the platform directory configuration,
+    making it easier to maintain and extend platform support.
+
+    Returns:
+        List of platform directory names
+
+    Examples:
+        >>> dirs = get_platform_directories()
+        >>> 'Codeforces' in dirs
+        True
+        >>> 'AtCoder/Problemset' in dirs
+        True
+    """
+    # Get platform names from judges
+    platform_names = [judge.platform_name for judge in ALL_JUDGES]
+
+    # Base directories (top-level for each platform)
+    base_dirs = platform_names + ['Trainings', 'Other']
+
+    # Subdirectories for platforms with multiple problemsets
+    subdirs = [
+        'Codeforces/Gym',
+        'Codeforces/Problemset',
+        'AtCoder/Problemset',
+    ]
+
+    return base_dirs + subdirs
 
 
 def detect_judge(url: str) -> Optional[Judge]:
