@@ -1,3 +1,13 @@
+# Node / Tooling
+node_modules/
+.husky/_/
+npm-debug.log*
+
+# IDEs e Sistema
+.vscode/
+.idea/
+.DS_Store
+
 __pycache__/
 *.pyc
 *.pyo
