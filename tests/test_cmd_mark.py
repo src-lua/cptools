@@ -25,9 +25,51 @@ def test_mark_range(tmp_path):
     for name in ["A.cpp", "B.cpp"]:
         with open(os.path.join(d, name), 'w') as f:
             f.write(f"/**\n * Problem: {name[0]}\n * Status: ~\n */")
-            
+
     with patch('sys.argv', ['cptools-mark', 'A~B', 'WA', d]):
         mark.run()
-        
+
     assert read_problem_header(os.path.join(d, "A.cpp")).status == "WA"
     assert read_problem_header(os.path.join(d, "B.cpp")).status == "WA"
+
+def test_mark_lowercase_problem_id(tmp_path):
+    """Test marking a problem with lowercase ID (Q16 fix)."""
+    d = str(tmp_path)
+    p = os.path.join(d, "abc123_a.cpp")
+    with open(p, 'w') as f:
+        f.write("/**\n * Problem: abc123_a\n * Status: ~\n */")
+
+    with patch('sys.argv', ['cptools-mark', 'abc123_a', 'AC', d]):
+        mark.run()
+
+    header = read_problem_header(p)
+    assert header.status == "AC"
+    assert header.problem == "abc123_a"  # Verify case is preserved
+
+def test_mark_mixed_case_problem_id(tmp_path):
+    """Test marking a problem with mixed case ID (Q16 fix)."""
+    d = str(tmp_path)
+    p = os.path.join(d, "dp_Subset.cpp")
+    with open(p, 'w') as f:
+        f.write("/**\n * Problem: dp_Subset\n * Status: ~\n */")
+
+    with patch('sys.argv', ['cptools-mark', 'dp_Subset', 'WIP', d]):
+        mark.run()
+
+    header = read_problem_header(p)
+    assert header.status == "WIP"
+    assert header.problem == "dp_Subset"  # Verify case is preserved
+
+def test_mark_numeric_problem_id(tmp_path):
+    """Test marking a problem with numeric ID (e.g., CSES problems)."""
+    d = str(tmp_path)
+    p = os.path.join(d, "1234.cpp")
+    with open(p, 'w') as f:
+        f.write("/**\n * Problem: 1234\n * Status: ~\n */")
+
+    with patch('sys.argv', ['cptools-mark', '1234', 'AC', d]):
+        mark.run()
+
+    header = read_problem_header(p)
+    assert header.status == "AC"
+    assert header.problem == "1234"
