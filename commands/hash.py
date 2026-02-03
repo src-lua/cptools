@@ -20,30 +20,10 @@ import tempfile
 
 from lib.io import error, success, header, bold, log
 
-# The C++ hasher script
-HASHER_SOURCE = r"""#include <bits/stdc++.h>
-
-using namespace std;
-
-string getHash(string s){
-	ofstream("z.cpp") << s;
-	system("g++ -E -P -dD -fpreprocessed ./z.cpp | tr -d '[:space:]' | md5sum > sh");
-	ifstream("sh") >> s;
-	return s.substr(0, 3);
-}
-int main(){
-	string l, t;
-	stack<string> st({""});
-	while(getline(cin, l)){
-        t = l;
-		for(auto c : l)
-			if(c == '{') st.push(""); else
-			if(c == '}') t = st.top()+l, st.pop();
-		cout << getHash(t) + " " + l << endl;
-		st.top() += t;
-	}
-}
-"""
+# Path to hasher template
+HASHER_SOURCE_PATH = os.path.join(
+    os.path.dirname(__file__), '..', 'lib', 'templates', 'hasher.cpp'
+)
 
 def get_or_compile_hasher():
     """Get the hasher binary path, compiling it if necessary."""
@@ -57,16 +37,20 @@ def get_or_compile_hasher():
     # Check if binary exists and is newer than source
     needs_compile = not os.path.exists(hasher_bin)
 
+    # Read hasher source from template
+    with open(HASHER_SOURCE_PATH, 'r') as f:
+        hasher_source = f.read()
+
     if not needs_compile and os.path.exists(hasher_src):
         # Check if source changed
         with open(hasher_src, 'r') as f:
-            if f.read() != HASHER_SOURCE:
+            if f.read() != hasher_source:
                 needs_compile = True
 
     if needs_compile or not os.path.exists(hasher_src):
         # Write source
         with open(hasher_src, 'w') as f:
-            f.write(HASHER_SOURCE)
+            f.write(hasher_source)
 
         # Compile
         result = subprocess.run(

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# Compiled binaries
+*.out
+*.o
+
+*.hashed
+
+# Stress test artifacts
+_stress_*

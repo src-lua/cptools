@@ -22,20 +22,10 @@ from lib.fileops import PLATFORM_DIRS
 from lib.config import ensure_config, get_config_path
 from lib.io import success, warning, info, header, bold
 
-GITIGNORE_CONTENT = """\
-__pycache__/
-*.pyc
-*.pyo
-
-# Compiled binaries
-*.out
-*.o
-
-*.hashed
-
-# Stress test artifacts
-_stress_*
-"""
+# Path to gitignore template
+GITIGNORE_TEMPLATE_PATH = os.path.join(
+    os.path.dirname(__file__), '..', 'lib', 'templates', '.gitignore.template'
+)
 
 def get_parser():
     """Creates and returns the argparse parser for the init command."""
@@ -68,8 +58,11 @@ def run():
     if not args.nogit:
         gitignore_path = os.path.join(directory, ".gitignore")
         if not os.path.exists(gitignore_path):
+            # Read from template
+            with open(GITIGNORE_TEMPLATE_PATH, 'r') as f:
+                gitignore_content = f.read()
             with open(gitignore_path, 'w') as f:
-                f.write(GITIGNORE_CONTENT)
+                f.write(gitignore_content)
             success("  + .gitignore")
         else:
             warning("    .gitignore (already exists)")
