@@ -187,3 +187,28 @@ def test_remove_problem_with_all_artifacts(tmp_path):
     # All should be removed
     for filename in files_to_create:
         assert not os.path.exists(os.path.join(temp_dir, filename))
+
+
+def test_remove_last_file_removes_info_md(tmp_path):
+    """Test that info.md is removed when last .cpp file is removed."""
+    temp_dir = str(tmp_path)
+
+    # Create a problem file
+    with open(os.path.join(temp_dir, "A.cpp"), 'w') as f:
+        f.write("code")
+
+    # Create info.md
+    with open(os.path.join(temp_dir, "info.md"), 'w') as f:
+        f.write("# Contest Info\n")
+
+    # Verify both exist
+    assert os.path.exists(os.path.join(temp_dir, "A.cpp"))
+    assert os.path.exists(os.path.join(temp_dir, "info.md"))
+
+    # Remove the last problem
+    with patch('sys.argv', ['cptools-rm', 'A', temp_dir]):
+        rm.run()
+
+    # Both should be removed
+    assert not os.path.exists(os.path.join(temp_dir, "A.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "info.md"))
