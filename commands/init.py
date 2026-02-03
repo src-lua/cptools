@@ -64,14 +64,15 @@ def run():
         else:
             warning(f"    {d}/ (already exists)")
 
-    # Create .gitignore
-    gitignore_path = os.path.join(directory, ".gitignore")
-    if not os.path.exists(gitignore_path):
-        with open(gitignore_path, 'w') as f:
-            f.write(GITIGNORE_CONTENT)
-        success("  + .gitignore")
-    else:
-        warning("    .gitignore (already exists)")
+    # Create .gitignore (only if git is enabled)
+    if not args.nogit:
+        gitignore_path = os.path.join(directory, ".gitignore")
+        if not os.path.exists(gitignore_path):
+            with open(gitignore_path, 'w') as f:
+                f.write(GITIGNORE_CONTENT)
+            success("  + .gitignore")
+        else:
+            warning("    .gitignore (already exists)")
 
     # Git init if not already a repo
     if not args.nogit:
