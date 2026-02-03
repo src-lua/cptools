@@ -1,6 +1,37 @@
 # CHANGELOG
 
 
+## v0.5.0 (2026-02-03)
+
+### Bug Fixes
+
+* fix: removed contest artifacts from problemset's info.md ([`9df3058`](https://github.com/src-lua/cptools/commit/9df30583bb042df46f93b9d9acaed21c85fc27b8))
+
+* fix: casing matching ([`82c9a81`](https://github.com/src-lua/cptools/commit/82c9a81280b9b55a987ad1605411ebb9e9fd7396))
+
+### Chores
+
+* chore: add commitlint to github actions ([`9c111dd`](https://github.com/src-lua/cptools/commit/9c111ddd4350ab870fb2d58a881f55b3f24e95eb))
+
+* chore: add commitlint configuration and husky hook ([`29c7c3a`](https://github.com/src-lua/cptools/commit/29c7c3a5658e68b4c60ef9b7dc22d8880a8f8729))
+
+### Documentation
+
+* docs: improve docstrings ([`a25741a`](https://github.com/src-lua/cptools/commit/a25741a91c14a543cc9c06f9bce6fc4298c26e8e))
+
+### Features
+
+* feat: improve editor fallback, fix some bugs and setup automation tooling ([`8087446`](https://github.com/src-lua/cptools/commit/80874461e586206487df5382e16e78564e083216))
+
+* feat: better editor fallback on config and flag to choose an editor ([`15ecbfe`](https://github.com/src-lua/cptools/commit/15ecbfe464d0a68a46c6fb1af30c98c4897f5434))
+
+* feat: auto fetch for supported platforms ([`d3d0e37`](https://github.com/src-lua/cptools/commit/d3d0e3729abc02a2b9d0f2a67e1ce4139b5f7b71))
+
+### Unknown
+
+* Merge branch 'main' into dev ([`65951a2`](https://github.com/src-lua/cptools/commit/65951a2d931d607fb2b43b1cc9f5be740ee0598e))
+
+
 ## v0.4.2 (2026-02-03)
 
 ### Bug Fixes
@@ -10,6 +41,8 @@
 bugfixes & python-semantic-release ([`2729300`](https://github.com/src-lua/cptools/commit/2729300022dcb9a1b7a2edf9e5d895f1d75eb80d))
 
 ### Chores
+
+* chore: remove .claude from repository ([`04aff2b`](https://github.com/src-lua/cptools/commit/04aff2b553a6085c3ea90b7e6ab10a75639cd99b))
 
 * chore(release): configure python-semantic-release and fix toml syntax ([`daa52f9`](https://github.com/src-lua/cptools/commit/daa52f9711791a16e0ffe25678d6f8f859240fdf))
 
