@@ -173,3 +173,139 @@ def test_update_codeforces_problemset_format(tmp_path):
     assert "**Contest**:" not in content
     assert "**Created**:" not in content
     assert "**Progress**: 1/1 solved" in content
+
+def test_update_filters_problem_variations(tmp_path):
+    """Test that problem variations (files with -suffix) are filtered correctly."""
+    d = tmp_path / "SPOJ"
+    d.mkdir()
+
+    # Create base problem with header
+    (d / "COT.cpp").write_text(
+        "/**\n"
+        " * Problem: Count on a Tree\n"
+        " * Status: AC\n"
+        " * Link: https://www.spoj.com/problems/COT/\n"
+        " */"
+    )
+
+    # Create variation with suffix (should be ignored)
+    (d / "COT-compressed.cpp").write_text(
+        "/**\n"
+        " * Problem: Count on a Tree (Compressed)\n"
+        " * Status: AC\n"
+        " * Link: https://www.spoj.com/problems/COT/\n"
+        " */"
+    )
+
+    # Create another base problem
+    (d / "MKTHNUM.cpp").write_text(
+        "/**\n"
+        " * Problem: K-th Number\n"
+        " * Status: WA\n"
+        " * Link: https://www.spoj.com/problems/MKTHNUM/\n"
+        " */"
+    )
+
+    with patch('sys.argv', ['cptools-update', str(d)]):
+        update.run()
+
+    info_md = d / "info.md"
+    assert info_md.exists()
+
+    content = info_md.read_text()
+
+    # Should only have 2 problems (COT and MKTHNUM)
+    assert "**Progress**: 1/2 solved" in content
+
+    # Should include base COT problem
+    assert "Count on a Tree" in content
+    assert "[Count on a Tree](https://www.spoj.com/problems/COT/)" in content
+
+    # Should NOT include compressed variation
+    assert "Compressed" not in content
+
+    # Should include MKTHNUM
+    assert "K-th Number" in content
+
+def test_update_variations_without_base(tmp_path):
+    """Test that when no base version exists, first variation is used."""
+    d = tmp_path / "contest"
+    d.mkdir()
+
+    # Create only variations (no base A.cpp)
+    (d / "A-v1.cpp").write_text(
+        "/**\n"
+        " * Problem: Problem A Version 1\n"
+        " * Status: AC\n"
+        " */"
+    )
+
+    (d / "A-v2.cpp").write_text(
+        "/**\n"
+        " * Problem: Problem A Version 2\n"
+        " * Status: AC\n"
+        " */"
+    )
+
+    with patch('sys.argv', ['cptools-update', str(d)]):
+        update.run()
+
+    info_md = d / "info.md"
+    assert info_md.exists()
+
+    content = info_md.read_text()
+
+    # Should only have 1 problem
+    assert "**Progress**: 1/1 solved" in content
+
+    # Should use first variation alphabetically (A-v1)
+    assert "Problem A Version 1" in content
+
+    # Should NOT include v2
+    assert "Version 2" not in content
+
+def test_update_multiple_variations_prefers_base(tmp_path):
+    """Test that base version is preferred over multiple variations."""
+    d = tmp_path / "contest"
+    d.mkdir()
+
+    # Create base version
+    (d / "B.cpp").write_text(
+        "/**\n"
+        " * Problem: Problem B Base\n"
+        " * Status: AC\n"
+        " */"
+    )
+
+    # Create multiple variations
+    (d / "B-optimized.cpp").write_text(
+        "/**\n"
+        " * Problem: Problem B Optimized\n"
+        " * Status: AC\n"
+        " */"
+    )
+
+    (d / "B-alternative.cpp").write_text(
+        "/**\n"
+        " * Problem: Problem B Alternative\n"
+        " * Status: AC\n"
+        " */"
+    )
+
+    with patch('sys.argv', ['cptools-update', str(d)]):
+        update.run()
+
+    info_md = d / "info.md"
+    assert info_md.exists()
+
+    content = info_md.read_text()
+
+    # Should only have 1 problem
+    assert "**Progress**: 1/1 solved" in content
+
+    # Should use base version
+    assert "Problem B Base" in content
+
+    # Should NOT include variations
+    assert "Optimized" not in content
+    assert "Alternative" not in content
