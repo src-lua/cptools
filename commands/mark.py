@@ -5,16 +5,18 @@ Usage: cptools mark <problem> [status] [directory]
 Mark the status of a problem in its C++ header.
 
 Arguments:
-  problem       Problem ID or range (e.g. A, A~E)
+  problem       Problem ID or range (e.g. A, A~E, KQUERY.cpp)
   status        Status code (AC, WA, TLE, MLE, RE, WIP, ~) [default: AC]
   directory     Target directory (default: current)
 
 Note:
   If only one extra argument is provided and it's a directory path,
   it will be treated as the directory and status will default to AC.
+  The .cpp extension is optional and will be stripped automatically.
 
 Examples:
   cptools mark A                        # Mark A as AC in current directory
+  cptools mark KQUERY.cpp               # Mark KQUERY as AC (extension stripped)
   cptools mark A AC                     # Mark A as AC explicitly
   cptools mark A /path/to/contest       # Mark A as AC in specific directory
   cptools mark B WA /path/to/contest    # Mark B as WA in specific directory
@@ -42,6 +44,10 @@ def run():
 
     problem_input = opts.problem
     extra_args = opts.args
+
+    # Strip .cpp extension if provided (e.g., "KQUERY.cpp" -> "KQUERY")
+    if problem_input.endswith('.cpp'):
+        problem_input = problem_input[:-4]
 
     # Smart arg parsing: if first extra arg is a directory, treat it as the directory arg
     if len(extra_args) > 0 and os.path.isdir(extra_args[0]):

@@ -73,3 +73,18 @@ def test_mark_numeric_problem_id(tmp_path):
     header = read_problem_header(p)
     assert header.status == "AC"
     assert header.problem == "1234"
+
+def test_mark_with_cpp_extension(tmp_path):
+    """Test marking a problem using filename with .cpp extension."""
+    d = str(tmp_path)
+    p = os.path.join(d, "KQUERY.cpp")
+    with open(p, 'w') as f:
+        f.write("/**\n * Problem: KQUERY\n * Status: ~\n */")
+
+    # Should work when passing "KQUERY.cpp" instead of just "KQUERY"
+    with patch('sys.argv', ['cptools-mark', 'KQUERY.cpp', 'AC', d]):
+        mark.run()
+
+    header = read_problem_header(p)
+    assert header.status == "AC"
+    assert header.problem == "KQUERY"
