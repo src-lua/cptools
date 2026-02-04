@@ -37,7 +37,7 @@ def add_from_url(url, autofetch):
 
     if not info:
         error("Error: could not parse URL.")
-        log("  Supported: codeforces.com, atcoder.jp, cses.fi, judge.yosupo.jp")
+        log("  Supported: codeforces.com, atcoder.jp, cses.fi, judge.yosupo.jp, spoj.com")
         sys.exit(1)
 
     if not os.path.exists(TEMPLATE_PATH):

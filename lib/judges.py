@@ -319,6 +319,84 @@ class YosupoJudge(Judge):
         return None
 
 
+class SPOJJudge(Judge):
+    """SPOJ (Sphere Online Judge) platform."""
+    platform_name = "SPOJ"
+
+    def detect(self, url: str) -> bool:
+        return 'spoj.com' in url
+
+    def fetch_problem_name(self, contest_id: str, problem_id: str) -> Optional[str]:
+        """Fetch problem name by parsing problem page."""
+        try:
+            # SPOJ URLs: https://www.spoj.com/problems/PROBLEM_CODE/
+            url = f"https://www.spoj.com/problems/{problem_id}/"
+            html = fetch_url(url, timeout=10)
+
+            # Try to extract title from <h2> tag
+            # SPOJ typically uses: <h2 class="text-center">Problem Title</h2>
+            match = re.search(r'<h2[^>]*>([^<]+)</h2>', html)
+            if match:
+                title = match.group(1).strip()
+                # Remove problem code prefix if present (e.g., "MKTHNUM - K-th Number" -> "K-th Number")
+                if ' - ' in title:
+                    title = title.split(' - ', 1)[1]
+                return title
+
+            # Fallback: try <title> tag
+            match = re.search(r'<title>([^<|]+)', html)
+            if match:
+                title = match.group(1).strip()
+                # Clean up common SPOJ title patterns
+                title = re.sub(r'^SPOJ\.com\s*-\s*', '', title)
+                title = re.sub(r'\s*\|.*$', '', title)
+                if ' - ' in title:
+                    title = title.split(' - ', 1)[-1]
+                return title.strip()
+        except Exception:
+            pass
+        return None
+
+    def fetch_contest_problems(self, contest_id: str) -> Dict[str, str]:
+        """SPOJ doesn't have traditional contests in the same way."""
+        return {}
+
+    def fetch_samples(self, url: str) -> Optional[List[SampleTest]]:
+        """Fetch samples by parsing HTML."""
+        try:
+            html = fetch_url(url, timeout=15)
+            return self._parse_samples(html)
+        except Exception:
+            return None
+
+    def _parse_samples(self, html: str) -> List[SampleTest]:
+        """Parse sample tests from SPOJ HTML."""
+        samples = []
+
+        # SPOJ uses <pre> tags for samples, often with "Input:" and "Output:" labels
+        # Try to find sample section
+        # Pattern 1: Look for "Sample input:" or "Example" section
+        sample_section = None
+        for pattern in [r'(?i)sample\s+input:?', r'(?i)example\s+input:?', r'(?i)input:?']:
+            match = re.search(pattern, html)
+            if match:
+                sample_section = html[match.start():]
+                break
+
+        if sample_section:
+            # Extract input/output pairs from <pre> tags
+            pre_blocks = re.findall(r'<pre[^>]*>(.*?)</pre>', sample_section, re.DOTALL | re.IGNORECASE)
+
+            # Pair up consecutive pre blocks (input, output, input, output, ...)
+            for i in range(0, len(pre_blocks) - 1, 2):
+                samples.append(SampleTest(
+                    input=clean_sample_text(pre_blocks[i]),
+                    output=clean_sample_text(pre_blocks[i + 1])
+                ))
+
+        return samples
+
+
 class VJudgeJudge(Judge):
     """vJudge platform (aggregates problems from other judges)."""
     platform_name = "vJudge"
@@ -345,6 +423,7 @@ ALL_JUDGES: List[Judge] = [
     AtCoderJudge(),
     CSESJudge(),
     YosupoJudge(),
+    SPOJJudge(),
     VJudgeJudge(),
 ]
 

@@ -151,6 +151,19 @@ def parse_problem_url(url):
             'fetch_platform': 'cses',
         }
 
+    # SPOJ: spoj.com/problems/MKTHNUM/
+    match = re.search(r'spoj\.com/problems/([A-Z0-9_]+)', url, re.IGNORECASE)
+    if match:
+        problem_code = match.group(1).upper()
+        return {
+            'platform_dir': 'SPOJ',
+            'contest_id': 'classical',
+            'letter': problem_code,
+            'filename': problem_code,
+            'link': url,
+            'fetch_platform': 'spoj',
+        }
+
     return None
 
 
