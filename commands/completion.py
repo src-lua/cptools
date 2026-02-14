@@ -17,6 +17,12 @@ Installation:
   1. Run: cptools completion --install
   2. Restart your shell
   3. Enjoy tab completion for all cptools commands and flags!
+
+Features:
+  - Command completion: Completes cptools subcommands
+  - Flag completion: Completes command-specific flags (--flag)
+  - File completion: Completes .cpp files for commands like add, rm, mark, open, test, bundle
+  - Directory completion: Completes directories for commands like update, new
 """
 import os
 import sys
@@ -43,9 +49,44 @@ _cptools_completion() {
     fi
 
     local command="${COMP_WORDS[1]}"
+
+    # Commands that accept files as positional arguments
     case "${command}" in
-%(cases)s
+        add|rm|mark|open|test|bundle)
+            # Complete with .cpp files or flags
+            if [[ ${cur} == -* ]]; then
+                # Complete flags for this specific command
+                local opts=""
+                case "${command}" in
+%(file_cmd_flags)s
+                esac
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            else
+                # Complete with .cpp files
+                COMPREPLY=( $(compgen -f -X '!*.cpp' -- ${cur}) )
+            fi
+            return 0
+            ;;
+        update|new)
+            # Complete with directories or flags
+            if [[ ${cur} == -* ]]; then
+                # Complete flags for this specific command
+                local opts=""
+                case "${command}" in
+%(dir_cmd_flags)s
+                esac
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            else
+                # Complete with directories
+                COMPREPLY=( $(compgen -d -- ${cur}) )
+            fi
+            return 0
+            ;;
         *)
+            # For other commands, just complete flags
+            case "${command}" in
+%(other_flags)s
+            esac
             ;;
     esac
 }
@@ -73,7 +114,9 @@ _cptools() {
             ;;
         (args)
             case $line[1] in
-%(cases)s
+%(file_cases)s
+%(dir_cases)s
+%(other_cases)s
             esac
             ;;
     esac
@@ -114,23 +157,127 @@ def get_commands_data():
     return data
 
 def generate_bash(data):
+    """
+    Generate bash completion script with intelligent file/directory completion.
+
+    The generated script provides context-aware completion:
+    - For file commands (add, rm, mark, open, test, bundle): Completes .cpp files
+    - For directory commands (update, new): Completes directories
+    - For all commands: Completes flags when input starts with -
+
+    Args:
+        data: Dict of command data from get_commands_data()
+
+    Returns:
+        Complete bash completion script as string
+    """
     commands = " ".join(data.keys())
-    cases = ""
+
+    # Commands that accept .cpp files as positional arguments
+    file_commands = ['add', 'rm', 'mark', 'open', 'test', 'bundle']
+    # Commands that accept directories as positional arguments
+    dir_commands = ['update', 'new']
+
+    # Generate flag cases for file commands
+    file_cmd_flags = ""
+    for cmd in file_commands:
+        if cmd in data:
+            opts = " ".join([o['long'] for o in data[cmd]['options']])
+            if opts:
+                file_cmd_flags += f"                    {cmd})\n                        opts=\"{opts}\"\n                        ;;\n"
+
+    # Generate flag cases for directory commands
+    dir_cmd_flags = ""
+    for cmd in dir_commands:
+        if cmd in data:
+            opts = " ".join([o['long'] for o in data[cmd]['options']])
+            if opts:
+                dir_cmd_flags += f"                    {cmd})\n                        opts=\"{opts}\"\n                        ;;\n"
+
+    # Generate flag cases for other commands
+    other_flags = ""
     for cmd, info in data.items():
+        if cmd in file_commands or cmd in dir_commands:
+            continue
         opts = " ".join([o['long'] for o in info['options']])
-        if not opts: continue
-        cases += f"        {cmd})\n            COMPREPLY=( $(compgen -W \"{opts}\" -- ${{cur}}) )\n            return 0\n            ;;\n"
-    
-    return BASH_TEMPLATE % {'commands': commands, 'cases': cases}
+        if opts:
+            other_flags += f"                {cmd})\n                    COMPREPLY=( $(compgen -W \"{opts}\" -- ${{cur}}) )\n                    return 0\n                    ;;\n"
+
+    return BASH_TEMPLATE % {
+        'commands': commands,
+        'file_cmd_flags': file_cmd_flags,
+        'dir_cmd_flags': dir_cmd_flags,
+        'other_flags': other_flags
+    }
 
 def generate_zsh(data):
+    """
+    Generate zsh completion script with intelligent file/directory completion.
+
+    The generated script provides context-aware completion:
+    - For file commands (add, rm, mark, open, test, bundle): Completes .cpp files using _files -g "*.cpp"
+    - For directory commands (update, new): Completes directories using _files -/
+    - For all commands: Completes flags with descriptions
+
+    Args:
+        data: Dict of command data from get_commands_data()
+
+    Returns:
+        Complete zsh completion script as string
+    """
     commands_desc_list = []
     for cmd, info in data.items():
         desc = info['desc'].replace("'", "'\\''")
         commands_desc_list.append(f"        '{cmd}:{desc}'")
     commands_desc = "\n".join(commands_desc_list)
-    cases = ""
+
+    # Commands that accept .cpp files as positional arguments
+    file_commands = ['add', 'rm', 'mark', 'open', 'test', 'bundle']
+    # Commands that accept directories as positional arguments
+    dir_commands = ['update', 'new']
+
+    # Generate individual cases for file commands
+    file_cases = ""
+    for cmd in file_commands:
+        if cmd in data:
+            opts = []
+            for o in data[cmd]['options']:
+                help_text = o['help'].replace("'", "'\\''")
+                if o['short']:
+                    opts.append(f"'({o['short']} {o['long']})'{{'{o['short']}','{o['long']}'}}'[{help_text}]'")
+                else:
+                    opts.append(f"'{o['long']}[{help_text}]'")
+
+            if opts:
+                opts_str = " \\\n                        ".join(opts)
+                file_cases += f"                {cmd})\n                    _arguments \\\n                        {opts_str} \\\n                        '*:cpp files:_files -g \"*.cpp\"'\n                    ;;\n"
+            else:
+                file_cases += f"                {cmd})\n                    _files -g \"*.cpp\"\n                    ;;\n"
+
+    # Generate individual cases for directory commands
+    dir_cases = ""
+    for cmd in dir_commands:
+        if cmd in data:
+            opts = []
+            for o in data[cmd]['options']:
+                help_text = o['help'].replace("'", "'\\''")
+                if o['short']:
+                    opts.append(f"'({o['short']} {o['long']})'{{'{o['short']}','{o['long']}'}}'[{help_text}]'")
+                else:
+                    opts.append(f"'{o['long']}[{help_text}]'")
+
+            if opts:
+                opts_str = " \\\n                        ".join(opts)
+                dir_cases += f"                {cmd})\n                    _arguments \\\n                        {opts_str} \\\n                        '*:directories:_files -/'\n                    ;;\n"
+            else:
+                dir_cases += f"                {cmd})\n                    _files -/\n                    ;;\n"
+
+    # Generate cases for other commands
+    other_cases = ""
     for cmd, info in data.items():
+        if cmd in file_commands or cmd in dir_commands:
+            continue
+
         opts = []
         for o in info['options']:
             help_text = o['help'].replace("'", "'\\''")
@@ -138,14 +285,19 @@ def generate_zsh(data):
                 opts.append(f"'({o['short']} {o['long']})'{{'{o['short']}','{o['long']}'}}'[{help_text}]'")
             else:
                 opts.append(f"'{o['long']}[{help_text}]'")
-        
+
         if opts:
-            opts_str = " ".join(opts)
-            cases += f"                {cmd})\n                    _arguments \\\n                        {opts_str}\n                    ;;\n"
+            opts_str = " \\\n                        ".join(opts)
+            other_cases += f"                {cmd})\n                    _arguments \\\n                        {opts_str}\n                    ;;\n"
         else:
-            cases += f"                {cmd})\n                    _arguments\n                    ;;\n"
-            
-    return ZSH_TEMPLATE % {'commands_desc': commands_desc, 'cases': cases}
+            other_cases += f"                {cmd})\n                    _arguments\n                    ;;\n"
+
+    return ZSH_TEMPLATE % {
+        'commands_desc': commands_desc,
+        'file_cases': file_cases,
+        'dir_cases': dir_cases,
+        'other_cases': other_cases
+    }
 
 def install(shell):
     if shell not in ['bash', 'zsh']:

@@ -17,10 +17,61 @@ import os
 import sys
 import argparse
 import subprocess
+import time
+import threading
 
 from lib.config import load_config
 from lib import find_samples, compile_from_config, next_test_index
 from lib.io import log, error, success, info, header, bold
+
+def get_process_memory(pid):
+    """Get current memory stats from /proc/[pid]/status."""
+    try:
+        with open(f'/proc/{pid}/status', 'r') as f:
+            vm_peak = 0
+            vm_size = 0
+            vm_rss = 0
+
+            for line in f:
+                if line.startswith('VmPeak:'):
+                    vm_peak = int(line.split()[1])
+                elif line.startswith('VmSize:'):
+                    vm_size = int(line.split()[1])
+                elif line.startswith('VmRSS:'):
+                    vm_rss = int(line.split()[1])
+
+            return max(vm_peak, vm_size), vm_rss
+    except:
+        return 0, 0
+
+def monitor_memory(pid, memory_stats):
+    """Monitor process memory usage via /proc/[pid]/status.
+
+    Uses aggressive sampling at start, then periodic checks.
+    """
+    max_vm_size = 0
+    max_rss = 0
+
+    # Phase 1: Aggressive sampling (no sleep) for first 1000 reads
+    # This catches memory allocated at process start
+    for _ in range(1000):
+        vm, rss = get_process_memory(pid)
+        if vm == 0 and rss == 0:
+            break  # Process ended
+        max_vm_size = max(max_vm_size, vm)
+        max_rss = max(max_rss, rss)
+
+    # Phase 2: Periodic sampling with tiny sleep
+    for _ in range(10000):
+        vm, rss = get_process_memory(pid)
+        if vm == 0 and rss == 0:
+            break  # Process ended
+        max_vm_size = max(max_vm_size, vm)
+        max_rss = max(max_rss, rss)
+        time.sleep(0.0001)  # 0.1ms
+
+    memory_stats['vm_peak'] = max_vm_size
+    memory_stats['rss_peak'] = max_rss
 
 def run_with_samples(binary, samples):
     """Run binary against sample test cases."""
@@ -31,25 +82,76 @@ def run_with_samples(binary, samples):
         with open(sample['in'], 'r') as f:
             input_data = f.read()
 
-        result = subprocess.run(
+        # Start process and monitor memory
+        start_time = time.time()
+
+        process = subprocess.Popen(
             [binary],
-            input=input_data,
-            capture_output=True,
-            text=True,
-            timeout=10,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
         )
 
-        actual = result.stdout.rstrip('\n')
+        # Start memory monitoring thread
+        memory_stats = {'vm_peak': 0, 'rss_peak': 0}
+        monitor_thread = threading.Thread(target=monitor_memory, args=(process.pid, memory_stats))
+        monitor_thread.daemon = True
+        monitor_thread.start()
+
+        # Run process with timeout
+        try:
+            stdout, stderr = process.communicate(input=input_data, timeout=10)
+            elapsed_time = time.time() - start_time
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+            monitor_thread.join(timeout=0.1)
+            raise
+
+        # Wait for monitor thread to finish
+        monitor_thread.join(timeout=0.1)
+
+        actual = stdout.rstrip('\n')
+        time_seconds = elapsed_time
+
+        # Get memory stats
+        vm_peak_kb = memory_stats.get('vm_peak', 0)
+        rss_peak_kb = memory_stats.get('rss_peak', 0)
+
+        # Format time and memory strings
+        if time_seconds < 1:
+            time_str = f"{time_seconds*1000:.0f}ms"
+        else:
+            time_str = f"{time_seconds:.2f}s"
+
+        # Format memory: "RSS (real) / VM (virtual)"
+        if vm_peak_kb > 0 and rss_peak_kb > 0:
+            if vm_peak_kb < 1024:
+                vm_str = f"{vm_peak_kb}KB"
+            else:
+                vm_str = f"{vm_peak_kb/1024:.1f}MB"
+
+            if rss_peak_kb < 1024:
+                rss_str = f"{rss_peak_kb}KB"
+            else:
+                rss_str = f"{rss_peak_kb/1024:.1f}MB"
+
+            mem_str = f"{rss_str} / {vm_str}"
+        else:
+            mem_str = None
 
         if sample['out']:
             with open(sample['out'], 'r') as f:
                 expected = f.read().rstrip('\n')
 
             if actual == expected:
-                success(f"  Sample {sample['num']}: PASS")
+                stats = f"{time_str}, {mem_str}" if mem_str else time_str
+                success(f"  Sample {sample['num']}: PASS ({stats})")
                 passed += 1
             else:
-                error(f"  Sample {sample['num']}: FAIL")
+                stats = f"{time_str}, {mem_str}" if mem_str else time_str
+                error(f"  Sample {sample['num']}: FAIL ({stats})")
                 bold("    Input:")
                 for line in input_data.strip().split('\n'):
                     log(f"      {line}")
@@ -60,7 +162,8 @@ def run_with_samples(binary, samples):
                 for line in actual.split('\n'):
                     log(f"      {line}")
         else:
-            info(f"  Sample {sample['num']}: (no expected output)")
+            stats = f"{time_str}, {mem_str}" if mem_str else time_str
+            info(f"  Sample {sample['num']}: (no expected output) ({stats})")
             bold("    Output:")
             for line in actual.split('\n'):
                 log(f"      {line}")
@@ -150,12 +253,13 @@ def run():
     try:
         samples = find_samples(directory, problem)
 
-        if samples and sys.stdin.isatty():
+        # If samples exist, always use them (regardless of stdin state)
+        if samples:
             info(f"Running {len(samples)} sample(s)...\n")
             success_result = run_with_samples(binary, samples)
             sys.exit(0 if success_result else 1)
         else:
-            # Interactive mode or piped stdin
+            # No samples: interactive mode or piped stdin
             if not sys.stdin.isatty():
                 result = subprocess.run([binary], stdin=sys.stdin)
             else:

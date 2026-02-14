@@ -14,6 +14,7 @@ Examples:
 import os
 import sys
 import argparse
+from datetime import date
 
 from lib.fileops import get_repo_root
 from lib.config import load_config
@@ -56,14 +57,33 @@ def create_contest_from_url(url):
         error("Error: template.cpp not found.")
         sys.exit(1)
 
-    # Get contest name
-    default_name = contest_info['contest_id']
+    # Get contest name - use today's date for trainings
+    if contest_info.get('is_training'):
+        default_name = date.today().strftime('%Y-%m-%d')
+    else:
+        default_name = contest_info['contest_id']
     contest_name = get_input("Contest name", default_name)
 
-    # Get problem range
-    default_range = contest_info.get('default_range', 'A~E')
-    problem_range_str = get_input("Problem range (e.g., A~E)", default_range)
-    problems = parse_problem_range(problem_range_str)
+    # Try to fetch problem names first
+    problem_names = {}
+    judge = detect_judge(url)
+    if judge:
+        try:
+            info("Fetching problems from API...")
+            problem_names = judge.fetch_contest_problems(contest_info['contest_id'])
+            if problem_names:
+                success(f"Found {len(problem_names)} problem(s)")
+        except Exception:
+            pass
+
+    # Get problem range - use fetched problems if available
+    if problem_names:
+        problems = list(problem_names.keys())
+        info(f"Auto-detected problems: {', '.join(problems)}")
+    else:
+        default_range = contest_info.get('default_range', 'A~E')
+        problem_range_str = get_input("Problem range (e.g., A~E)", default_range)
+        problems = parse_problem_range(problem_range_str)
 
     # Create directory structure
     dest_dir = os.path.join(ROOT_DIR, contest_info['platform'], contest_name)
@@ -75,18 +95,6 @@ def create_contest_from_url(url):
     print(f"  Name: {contest_name}")
     print(f"  Problems: {', '.join(problems)}")
     print(f"  Directory: {dest_dir}\n")
-
-    # Try to fetch problem names
-    problem_names = {}
-    judge = detect_judge(url)
-    if judge:
-        try:
-            info("Fetching problem names...")
-            problem_names = judge.fetch_contest_problems(contest_info['contest_id'])
-            if problem_names:
-                success(f"Found {len(problem_names)} problem name(s)")
-        except Exception:
-            warning("Could not fetch problem names (will use defaults)")
 
     # Create problem files
     created = 0

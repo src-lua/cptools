@@ -9,19 +9,32 @@ def test_completion_generate_bash(capsys):
     """Test generating bash completion script."""
     with patch('sys.argv', ['cptools-completion', '--shell', 'bash']):
         completion.run()
-        
+
     captured = capsys.readouterr()
     assert "_cptools_completion()" in captured.out
     assert "complete -F _cptools_completion" in captured.out
+    # Check file completion for add/rm/mark/open/test/bundle
+    assert "add|rm|mark|open|test|bundle)" in captured.out
+    assert 'compgen -f -X \'!*.cpp\'' in captured.out
+    # Check directory completion for update/new
+    assert "update|new)" in captured.out
+    assert "compgen -d" in captured.out
 
 def test_completion_generate_zsh(capsys):
     """Test generating zsh completion script."""
     with patch('sys.argv', ['cptools-completion', '--shell', 'zsh']):
         completion.run()
-        
+
     captured = capsys.readouterr()
     assert "#compdef cptools cpt" in captured.out
     assert "_cptools()" in captured.out
+    # Check file completion for add/rm/mark/open/test/bundle (individual cases now)
+    assert "add)" in captured.out
+    assert "rm)" in captured.out
+    assert '_files -g "*.cpp"' in captured.out
+    # Check directory completion for update/new
+    assert "update)" in captured.out
+    assert "_files -/" in captured.out
 
 def test_completion_install(tmp_path):
     """Test installing completion script."""

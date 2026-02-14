@@ -212,3 +212,26 @@ def test_remove_last_file_removes_info_md(tmp_path):
     # Both should be removed
     assert not os.path.exists(os.path.join(temp_dir, "A.cpp"))
     assert not os.path.exists(os.path.join(temp_dir, "info.md"))
+
+
+def test_remove_with_cpp_extension(tmp_path):
+    """Test removing problem using filename with .cpp extension."""
+    temp_dir = str(tmp_path)
+
+    # Create dummy files
+    files = ["KQUERY.cpp", "KQUERY_1.in", "KQUERY_1.out"]
+    for f in files:
+        with open(os.path.join(temp_dir, f), 'w') as handle:
+            handle.write("data")
+
+    # Ensure they exist before removal
+    for f in files:
+        assert os.path.exists(os.path.join(temp_dir, f))
+
+    # Run remove with .cpp extension
+    with patch.object(sys, 'argv', ['cptools-rm', 'KQUERY.cpp', temp_dir]):
+        rm.run()
+
+    # Ensure they are gone
+    for f in files:
+        assert not os.path.exists(os.path.join(temp_dir, f))

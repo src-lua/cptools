@@ -5,16 +5,18 @@ Usage: cptools rm <problem>... [directory]
 Remove problem files and their associated test cases.
 
 Arguments:
-  problem       Problem ID(s) to remove (e.g. A, B, dp_a)
+  problem       Problem ID(s) to remove (e.g. A, B, dp_a, KQUERY.cpp)
   directory     Target directory (default: current)
 
 Note:
   If the last argument is a directory path, it will be treated as
   the target directory. Otherwise, all arguments are treated as
   problem IDs and the current directory is used.
+  The .cpp extension is optional and will be stripped automatically.
 
 Examples:
   cptools rm A                        # Remove A from current directory
+  cptools rm KQUERY.cpp               # Remove KQUERY (extension stripped)
   cptools rm dp_a dp_b                # Remove multiple problems from current directory
   cptools rm A B /path/to/contest     # Remove A and B from specific directory
   cptools rm 1636                     # Remove problem 1636 from current directory
@@ -87,6 +89,9 @@ def run():
     else:
         directory = os.getcwd()
         problems = args
+
+    # Strip .cpp extension if provided
+    problems = [p.replace('.cpp', '') if p.endswith('.cpp') else p for p in problems]
 
     header("--- Removing Problems ---")
     print()

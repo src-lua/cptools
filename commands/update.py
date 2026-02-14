@@ -52,15 +52,59 @@ def is_problemset(platform, directory_path):
 
 
 def generate_info_md(directory):
-    """Generate or update info.md for the contest directory."""
+    """
+    Generate or update info.md for the contest directory.
+
+    This function scans for .cpp files, extracts their problem headers,
+    and generates a markdown summary with problem status and progress.
+
+    Problem Variations:
+        When multiple files represent the same problem (e.g., different
+        implementations or compressed versions), only one is included:
+
+        - Files with suffixes (PROBLEM-suffix.cpp) are considered variations
+        - Examples: COT.cpp and COT-compressed.cpp, A.cpp and A-v2.cpp
+        - The base version (without suffix) is preferred if it exists
+        - If no base version exists, the first variation alphabetically is used
+
+        Examples:
+            COT.cpp + COT-compressed.cpp → Uses COT.cpp
+            A-v1.cpp + A-v2.cpp → Uses A-v1.cpp (alphabetically first)
+            B.cpp + B-optimized.cpp + B-alternative.cpp → Uses B.cpp
+
+    Args:
+        directory: Path to contest/problemset directory containing .cpp files
+    """
     directory = os.path.abspath(directory)
 
     # Find all .cpp files
-    cpp_files = sorted([f for f in os.listdir(directory) if f.endswith('.cpp')])
+    all_cpp_files = sorted([f for f in os.listdir(directory) if f.endswith('.cpp')])
 
-    if not cpp_files:
+    if not all_cpp_files:
         warning(f"No .cpp files found in {directory}")
         return
+
+    # Filter out problem variations (files with -suffix)
+    # Group files by base name (before first '-')
+    problem_groups = {}
+    for cpp_file in all_cpp_files:
+        # Extract base name (e.g., "COT-compressed.cpp" -> "COT")
+        base_name = cpp_file.replace('.cpp', '').split('-')[0]
+
+        if base_name not in problem_groups:
+            problem_groups[base_name] = []
+        problem_groups[base_name].append(cpp_file)
+
+    # For each group, prefer the version without suffix
+    cpp_files = []
+    for base_name, files in sorted(problem_groups.items()):
+        # Check if base version exists (e.g., "COT.cpp")
+        base_file = f"{base_name}.cpp"
+        if base_file in files:
+            cpp_files.append(base_file)
+        else:
+            # No base version, use first variation alphabetically
+            cpp_files.append(sorted(files)[0])
 
     info(f"Reading {len(cpp_files)} problem files...")
 

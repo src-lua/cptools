@@ -12,6 +12,9 @@ DEFAULTS = {
     "default_group_id": "yc7Yxny414",
     "compiler": "g++",
     "compiler_flags": ["-O2", "-std=c++17"],
+    "cookie_cache_enabled": True,
+    "cookie_cache_max_age_hours": 24,  # -1 = never expire (only refresh on auth failure)
+    "preferred_browser": None,  # None = auto-detect, or "firefox", "chrome", etc.
 }
 
 def get_config_path():

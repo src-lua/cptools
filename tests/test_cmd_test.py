@@ -46,14 +46,16 @@ def test_run_samples_success(tmp_path):
     with open(sample_in, 'w') as f: f.write("input")
     with open(sample_out, 'w') as f: f.write("expected")
 
+    # Mock Popen instead of run
+    mock_process = MagicMock()
+    mock_process.pid = 12345
+    mock_process.communicate.return_value = ("expected\n", "")
+
     with patch.object(sys, 'argv', ['cptools-test', 'A', temp_dir]), \
          patch('commands.test.load_config', return_value={}), \
          patch('commands.test.compile_from_config', return_value=mock_compile_res), \
-         patch('subprocess.run') as mock_run, \
+         patch('subprocess.Popen', return_value=mock_process), \
          patch('sys.stdin.isatty', return_value=True): # Simulate terminal
-
-        # Mock execution of the binary to return "expected"
-        mock_run.return_value = MagicMock(stdout="expected\n", returncode=0)
 
         # Expect sys.exit(0) on success
         try:
@@ -79,14 +81,16 @@ def test_run_samples_failure(tmp_path):
 
     mock_compile_res = MagicMock(success=True, binary_path=os.path.join(temp_dir, ".B"))
 
+    # Mock Popen
+    mock_process = MagicMock()
+    mock_process.pid = 12345
+    mock_process.communicate.return_value = ("999\n", "")
+
     with patch.object(sys, 'argv', ['cptools-test', 'B', temp_dir]), \
          patch('commands.test.load_config', return_value={}), \
          patch('commands.test.compile_from_config', return_value=mock_compile_res), \
-         patch('subprocess.run') as mock_run, \
+         patch('subprocess.Popen', return_value=mock_process), \
          patch('sys.stdin.isatty', return_value=True):
-
-        # Mock execution returning wrong output
-        mock_run.return_value = MagicMock(stdout="999\n", returncode=0)
 
         # Expect sys.exit(1) on failure
         with pytest.raises(SystemExit) as exc_info:
@@ -140,10 +144,17 @@ def test_timeout_handling(tmp_path):
 
     mock_compile_res = MagicMock(success=True, binary_path=os.path.join(temp_dir, ".D"))
 
+    # Mock Popen that times out
+    mock_process = MagicMock()
+    mock_process.pid = 12345
+    mock_process.communicate.side_effect = subprocess.TimeoutExpired('cmd', 10)
+    mock_process.kill = MagicMock()
+    mock_process.wait = MagicMock()
+
     with patch.object(sys, 'argv', ['cptools-test', 'D', temp_dir]), \
          patch('commands.test.load_config', return_value={}), \
          patch('commands.test.compile_from_config', return_value=mock_compile_res), \
-         patch('subprocess.run', side_effect=subprocess.TimeoutExpired('cmd', 10)), \
+         patch('subprocess.Popen', return_value=mock_process), \
          patch('sys.stdin.isatty', return_value=True):
 
         with pytest.raises(SystemExit) as exc_info:
@@ -170,10 +181,15 @@ def test_sample_without_expected_output(tmp_path):
 
     mock_compile_res = MagicMock(success=True, binary_path=os.path.join(temp_dir, ".G"))
 
+    # Mock Popen
+    mock_process = MagicMock()
+    mock_process.pid = 12345
+    mock_process.communicate.return_value = ("result\n", "")
+
     with patch.object(sys, 'argv', ['cptools-test', 'G', temp_dir]), \
          patch('commands.test.load_config', return_value={}), \
          patch('commands.test.compile_from_config', return_value=mock_compile_res), \
-         patch('subprocess.run', return_value=MagicMock(stdout="result\n", returncode=0)), \
+         patch('subprocess.Popen', return_value=mock_process), \
          patch('sys.stdin.isatty', return_value=True):
 
         with pytest.raises(SystemExit) as exc_info:
