@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.7.0 (2026-02-14)
+
+### Bug Fixes
+
+* fix: mark ~ works as expected ([`6bece9b`](https://github.com/src-lua/cptools/commit/6bece9bb5669210a06d4fc0cedbfee5e9d357d5a))
+
+* fix: remove now supports problem ranges ([`7edbd06`](https://github.com/src-lua/cptools/commit/7edbd06778c527e096ba19297d9909de6f5c0802))
+
+### Features
+
+* feat: add_header command and aks if user want to add if a header is missing ([`5e15588`](https://github.com/src-lua/cptools/commit/5e15588669b738ff00734568b76d18e6ce5727d9))
+
+
 ## v0.6.0 (2026-02-14)
 
 ### Bug Fixes
