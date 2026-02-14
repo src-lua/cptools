@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v0.6.0 (2026-02-14)
+
+### Bug Fixes
+
+* fix: default name for training is the current date and problems are auto fetched if it's possible ([`fcac876`](https://github.com/src-lua/cptools/commit/fcac876f34290dc394a27e9001673b27a08acaf7))
+
+* fix: rm and mark now handle properly if the file has or not .cpp extension ([`dbcd41b`](https://github.com/src-lua/cptools/commit/dbcd41be0de78573079dccdcbd2a54922bae2b0a))
+
+* fix: autocomplete now completes files/folders ([`6f8e938`](https://github.com/src-lua/cptools/commit/6f8e93858aa717f74461aa0a4e5184ba8cd5c010))
+
+### Features
+
+* feat: better judge support ([`7a8c2b0`](https://github.com/src-lua/cptools/commit/7a8c2b0c581d131b15e317af6cbcf7b433d874e7))
+
+* feat: cookie fetching for geting samples in auth-required pages ([`c5808a1`](https://github.com/src-lua/cptools/commit/c5808a1f16105893fa5db1189fb4e44cbbc78a08))
+
+* feat: show process memory in tests ([`eba24c8`](https://github.com/src-lua/cptools/commit/eba24c8078c541d1bcc737d4c8f5546c8ce3b303))
+
+* feat: files with same name after an hyphen '-' is considered the same solution ([`fea779b`](https://github.com/src-lua/cptools/commit/fea779bed7869df6ef59312b183ea6db5c980163))
+
+* feat: support for SPOJ ([`eab7521`](https://github.com/src-lua/cptools/commit/eab7521e3afcaa92b47b9135ef0979baa99404df))
+
+
 ## v0.5.0 (2026-02-03)
 
 ### Bug Fixes
