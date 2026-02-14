@@ -50,7 +50,18 @@ def run():
         problem_input = problem_input[:-4]
 
     # Smart arg parsing: if first extra arg is a directory, treat it as the directory arg
-    if len(extra_args) > 0 and os.path.isdir(extra_args[0]):
+    # BUT: Special case for '~' status - the shell expands ~ to home directory,
+    # so we need to detect when the user meant the status '~' vs an actual directory
+    home_dir = os.path.expanduser('~')
+    is_tilde_status = (len(extra_args) == 1 and
+                       extra_args[0] == home_dir and
+                       os.path.isdir(extra_args[0]))
+
+    if is_tilde_status:
+        # User typed '~' which was expanded to home directory, but they meant the status
+        new_status = '~'
+        directory = os.getcwd()
+    elif len(extra_args) > 0 and os.path.isdir(extra_args[0]):
         new_status = 'AC'
         directory = extra_args[0]
     else:

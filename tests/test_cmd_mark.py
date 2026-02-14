@@ -88,3 +88,23 @@ def test_mark_with_cpp_extension(tmp_path):
     header = read_problem_header(p)
     assert header.status == "AC"
     assert header.problem == "KQUERY"
+
+
+def test_mark_tilde_status_shell_expansion(tmp_path, monkeypatch):
+    """Test marking with ~ status when shell expands it to home directory."""
+    d = str(tmp_path)
+    monkeypatch.chdir(d)
+
+    p = os.path.join(d, "A.cpp")
+    with open(p, 'w') as f:
+        f.write("/**\n * Problem: A\n * Status: AC\n */")
+
+    # Simulate shell expansion: when user types "cptools mark A ~",
+    # the shell expands ~ to the home directory (e.g., /home/user)
+    home_dir = os.path.expanduser('~')
+    with patch('sys.argv', ['cptools-mark', 'A', home_dir]):
+        mark.run()
+
+    # Should interpret home_dir as the status '~', not as a directory
+    header = read_problem_header(p)
+    assert header.status == "~"
