@@ -235,3 +235,134 @@ def test_remove_with_cpp_extension(tmp_path):
     # Ensure they are gone
     for f in files:
         assert not os.path.exists(os.path.join(temp_dir, f))
+
+
+def test_remove_range_basic(tmp_path):
+    """Test removing a range of problems (Q20)."""
+    temp_dir = str(tmp_path)
+
+    # Create problems A, B, C
+    for letter in ['A', 'B', 'C']:
+        with open(os.path.join(temp_dir, f"{letter}.cpp"), 'w') as f:
+            f.write("code")
+
+    # Remove A~C
+    with patch.object(sys, 'argv', ['cptools-rm', 'A~C', temp_dir]):
+        rm.run()
+
+    # All should be removed
+    assert not os.path.exists(os.path.join(temp_dir, "A.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "B.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "C.cpp"))
+
+
+def test_remove_range_with_samples(tmp_path):
+    """Test removing range also removes sample files (Q20)."""
+    temp_dir = str(tmp_path)
+
+    # Create problems A and B with samples
+    for letter in ['A', 'B']:
+        with open(os.path.join(temp_dir, f"{letter}.cpp"), 'w') as f:
+            f.write("code")
+        with open(os.path.join(temp_dir, f"{letter}_1.in"), 'w') as f:
+            f.write("input")
+        with open(os.path.join(temp_dir, f"{letter}_1.out"), 'w') as f:
+            f.write("output")
+
+    # Remove A~B
+    with patch.object(sys, 'argv', ['cptools-rm', 'A~B', temp_dir]):
+        rm.run()
+
+    # All files should be removed
+    for letter in ['A', 'B']:
+        assert not os.path.exists(os.path.join(temp_dir, f"{letter}.cpp"))
+        assert not os.path.exists(os.path.join(temp_dir, f"{letter}_1.in"))
+        assert not os.path.exists(os.path.join(temp_dir, f"{letter}_1.out"))
+
+
+def test_remove_large_range_with_confirmation(tmp_path):
+    """Test removing large range (>3 problems) requires confirmation (Q20)."""
+    temp_dir = str(tmp_path)
+
+    # Create problems A through E (5 problems)
+    for letter in ['A', 'B', 'C', 'D', 'E']:
+        with open(os.path.join(temp_dir, f"{letter}.cpp"), 'w') as f:
+            f.write("code")
+
+    # User cancels the operation
+    with patch.object(sys, 'argv', ['cptools-rm', 'A~E', temp_dir]):
+        with patch('builtins.input', return_value='n'):
+            rm.run()
+
+    # All files should still exist
+    for letter in ['A', 'B', 'C', 'D', 'E']:
+        assert os.path.exists(os.path.join(temp_dir, f"{letter}.cpp"))
+
+    # User confirms the operation
+    with patch.object(sys, 'argv', ['cptools-rm', 'A~E', temp_dir]):
+        with patch('builtins.input', return_value='y'):
+            rm.run()
+
+    # All files should be removed
+    for letter in ['A', 'B', 'C', 'D', 'E']:
+        assert not os.path.exists(os.path.join(temp_dir, f"{letter}.cpp"))
+
+
+def test_remove_range_with_individual_problems(tmp_path):
+    """Test mixing range and individual problems (Q20)."""
+    temp_dir = str(tmp_path)
+
+    # Create problems A, B, C, E, F
+    for letter in ['A', 'B', 'C', 'E', 'F']:
+        with open(os.path.join(temp_dir, f"{letter}.cpp"), 'w') as f:
+            f.write("code")
+
+    # Remove A~B and F
+    with patch.object(sys, 'argv', ['cptools-rm', 'A~B', 'F', temp_dir]):
+        rm.run()
+
+    # A, B, F should be removed
+    assert not os.path.exists(os.path.join(temp_dir, "A.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "B.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "F.cpp"))
+
+    # C, E should still exist
+    assert os.path.exists(os.path.join(temp_dir, "C.cpp"))
+    assert os.path.exists(os.path.join(temp_dir, "E.cpp"))
+
+
+def test_remove_range_with_duplicates(tmp_path):
+    """Test removing range handles duplicates correctly (Q20)."""
+    temp_dir = str(tmp_path)
+
+    # Create problems A, B
+    for letter in ['A', 'B']:
+        with open(os.path.join(temp_dir, f"{letter}.cpp"), 'w') as f:
+            f.write("code")
+
+    # Remove A~B A (duplicate specification)
+    with patch.object(sys, 'argv', ['cptools-rm', 'A~B', 'A', temp_dir]):
+        rm.run()
+
+    # Both should be removed (no errors from duplicate)
+    assert not os.path.exists(os.path.join(temp_dir, "A.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "B.cpp"))
+
+
+def test_remove_range_with_cpp_extension(tmp_path):
+    """Test removing range works with .cpp extensions (Q20)."""
+    temp_dir = str(tmp_path)
+
+    # Create problems A, B, C
+    for letter in ['A', 'B', 'C']:
+        with open(os.path.join(temp_dir, f"{letter}.cpp"), 'w') as f:
+            f.write("code")
+
+    # Remove A.cpp~C.cpp (should strip extensions)
+    with patch.object(sys, 'argv', ['cptools-rm', 'A.cpp~C.cpp', temp_dir]):
+        rm.run()
+
+    # All should be removed
+    assert not os.path.exists(os.path.join(temp_dir, "A.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "B.cpp"))
+    assert not os.path.exists(os.path.join(temp_dir, "C.cpp"))
