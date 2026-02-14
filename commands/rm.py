@@ -6,6 +6,7 @@ Remove problem files and their associated test cases.
 
 Arguments:
   problem       Problem ID(s) to remove (e.g. A, B, dp_a, KQUERY.cpp)
+                Supports ranges: A~E expands to A B C D E
   directory     Target directory (default: current)
 
 Note:
@@ -20,12 +21,16 @@ Examples:
   cptools rm dp_a dp_b                # Remove multiple problems from current directory
   cptools rm A B /path/to/contest     # Remove A and B from specific directory
   cptools rm 1636                     # Remove problem 1636 from current directory
+  cptools rm A~E                      # Remove A, B, C, D, E from current directory
+  cptools rm A~C /path/to/contest     # Remove A, B, C from specific directory
 """
 import os
+import sys
 import argparse
 import glob
 
 from lib.io import success, warning, info, header, bold
+from lib.parsing import parse_problem_range
 
 def remove_problem(problem, directory):
     """Remove a problem file and its associated samples/binaries."""
@@ -85,13 +90,31 @@ def run():
     args = opts.args
     if len(args) > 1 and os.path.isdir(args[-1]):
         directory = args[-1]
-        problems = args[:-1]
+        problem_args = args[:-1]
     else:
         directory = os.getcwd()
-        problems = args
+        problem_args = args
 
-    # Strip .cpp extension if provided
-    problems = [p.replace('.cpp', '') if p.endswith('.cpp') else p for p in problems]
+    # Expand ranges and collect all problems
+    problems = []
+    for arg in problem_args:
+        # Strip .cpp extension if provided before parsing
+        arg = arg.replace('.cpp', '') if arg.endswith('.cpp') else arg
+        # Parse range (A~E) or single problem
+        expanded = parse_problem_range(arg)
+        problems.extend(expanded)
+
+    # Remove duplicates while preserving order
+    seen = set()
+    problems = [p for p in problems if not (p in seen or seen.add(p))]
+
+    # Safety confirmation for multiple problems
+    if len(problems) > 3:
+        print(f"You are about to remove {len(problems)} problems: {', '.join(problems[:10])}{' ...' if len(problems) > 10 else ''}")
+        response = input("Are you sure? (y/N): ").strip().lower()
+        if response not in ['y', 'yes']:
+            print("Cancelled.")
+            return
 
     header("--- Removing Problems ---")
     print()
