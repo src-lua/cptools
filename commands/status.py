@@ -15,14 +15,36 @@ import os
 import sys
 import argparse
 from lib.display_utils import get_status_emoji
-from lib.fileops import read_problem_header
-from lib.io import error, warning, Colors, log
+from lib.fileops import read_problem_header, generate_header
+from lib.io import error, warning, Colors, log, info
+from lib.config import load_config
 
 def get_parser():
     """Creates and returns the argparse parser for the status command."""
     parser = argparse.ArgumentParser(description="Show a quick summary of the current contest directory.")
     parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory (default: current)')
     return parser
+
+def add_header_to_file(filepath, problem_id):
+    """Add a header to a file that doesn't have one."""
+    config = load_config()
+    author = config.get('author', 'Unknown')
+
+    with open(filepath, 'r') as f:
+        content = f.read()
+
+    header = generate_header(
+        problem_id=problem_id,
+        link='',
+        problem_name=None,
+        author=author,
+        status='~'
+    )
+
+    with open(filepath, 'w') as f:
+        f.write(header)
+        f.write(content)
+
 
 def run():
     parser = get_parser()
@@ -39,12 +61,36 @@ def run():
         warning("No .cpp files found.")
         sys.exit(1)
 
+    # Check for files without headers
+    files_without_headers = []
+    for cpp_file in cpp_files:
+        filepath = os.path.join(directory, cpp_file)
+        header = read_problem_header(filepath)
+        if not header or header.problem is None:
+            files_without_headers.append(cpp_file)
+
+    # Offer to add headers if any files are missing them
+    if files_without_headers:
+        warning(f"Found {len(files_without_headers)} file(s) without cptools headers:")
+        for f in files_without_headers:
+            info(f"  • {f}")
+        response = input("\nAdd headers to these files? (y/N): ").strip().lower()
+        if response in ['y', 'yes']:
+            for cpp_file in files_without_headers:
+                filepath = os.path.join(directory, cpp_file)
+                problem_id = cpp_file.replace('.cpp', '')
+                # Convert underscores to spaces for display
+                problem_display = problem_id.replace('_', ' ')
+                add_header_to_file(filepath, problem_display)
+                info(f"  ✓ Added header to {cpp_file}")
+            print()
+
     counts = {}
     problems = []
     for cpp_file in cpp_files:
         filepath = os.path.join(directory, cpp_file)
         header = read_problem_header(filepath)
-        if not header:
+        if not header or header.problem is None:
             continue
 
         status = header.status.upper().strip()
