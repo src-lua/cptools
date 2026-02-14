@@ -1,7 +1,9 @@
 """
 Tests for lib/judges.py - Online judge platform abstractions.
 """
+import pytest
 from unittest.mock import patch, MagicMock
+from lib import PlatformError
 from lib.judges import (
     detect_judge,
     CodeforcesJudge,
@@ -74,6 +76,136 @@ class TestCodeforcesJudge:
             assert samples[0].output == "3"
             assert samples[1].input == "4 5"
             assert samples[1].output == "9"
+
+    def test_needs_authentication_for_groups(self):
+        """Test that group URLs are detected as needing auth."""
+        # Group URL needs auth
+        assert self.judge.needs_authentication("https://codeforces.com/group/abc123/contest/456/problem/A")
+
+        # Regular contest doesn't
+        assert not self.judge.needs_authentication("https://codeforces.com/contest/1234/problem/A")
+
+    def test_is_private_url(self):
+        """Test private URL detection."""
+        assert self.judge._is_private_url("https://codeforces.com/group/test/contest/123/problem/A")
+        assert not self.judge._is_private_url("https://codeforces.com/contest/1234/problem/A")
+
+    def test_fetch_samples_with_auth(self):
+        """Test sample fetching uses auth for group URLs."""
+        group_url = "https://codeforces.com/group/test/contest/123/problem/A"
+
+        html = """
+        <div class="sample-test">
+            <div class="input"><pre>1 2</pre></div>
+            <div class="output"><pre>3</pre></div>
+        </div>
+        """
+
+        with patch('lib.http_utils.fetch_url_with_auth', return_value=html) as mock_fetch:
+            samples = self.judge.fetch_samples(group_url)
+
+            # Verify auth fetch was used
+            mock_fetch.assert_called_once()
+            assert samples is not None
+            assert len(samples) == 1
+            assert samples[0].input == "1 2"
+            assert samples[0].output == "3"
+
+    def test_fetch_with_auth_retry(self):
+        """Test that auth retry works when session expires."""
+        url = "https://codeforces.com/group/test/contest/123/problem/A"
+
+        # First call returns login page (with actual login form), second returns actual content
+        login_html = '<html><form class="loginForm">Please login</form></html>'
+        actual_html = """
+        <div class="sample-test">
+            <div class="input"><pre>1 2</pre></div>
+            <div class="output"><pre>3</pre></div>
+        </div>
+        """
+
+        with patch('lib.http_utils.fetch_url_with_auth', side_effect=[login_html, actual_html]) as mock_fetch:
+            html = self.judge._fetch_with_auth_retry(url)
+
+            # Should have called twice (first failed, second succeeded)
+            assert mock_fetch.call_count == 2
+            assert html == actual_html
+
+            # First call without force_refresh, second with force_refresh
+            calls = mock_fetch.call_args_list
+            assert calls[0][1]['force_refresh'] == False
+            assert calls[1][1]['force_refresh'] == True
+
+    def test_is_logged_out(self):
+        """Test _is_logged_out detection method."""
+        # HTML with login indicators (not logged in)
+        html_logged_out = '<html><a href="/enter?back=/contest">Enter</a> | <a href="/register">Register</a></html>'
+        assert self.judge._is_logged_out(html_logged_out) == True
+
+        # HTML without login indicators (logged in)
+        html_logged_in = '<html><a href="/logout">Logout</a></html>'
+        assert self.judge._is_logged_out(html_logged_in) == False
+
+        # HTML with samples (likely logged in)
+        html_with_samples = '<html><div class="sample-test"><pre>test</pre></div></html>'
+        assert self.judge._is_logged_out(html_with_samples) == False
+
+    def test_auto_refresh_on_expired_cookies(self):
+        """Test that expired cookies are automatically refreshed."""
+        url = "https://codeforces.com/group/test/contest/123/problem/A"
+
+        # First fetch returns HTML indicating not logged in (no samples, has Enter link)
+        html_not_logged_in = '<html><a href="/enter?back=/contest">Enter</a></html>'
+
+        # Second fetch (after cookie refresh) returns HTML with samples
+        html_with_samples = """
+        <html>
+        <div class="sample-test">
+            <div class="input"><pre>1 2</pre></div>
+            <div class="output"><pre>3</pre></div>
+        </div>
+        </html>
+        """
+
+        with patch('lib.http_utils.fetch_url_with_auth') as mock_fetch_auth:
+            # First call returns "not logged in", second returns samples
+            mock_fetch_auth.side_effect = [html_not_logged_in, html_with_samples]
+
+            samples = self.judge.fetch_samples(url)
+
+            # Should have called fetch twice: once with cache, once with force_refresh
+            assert mock_fetch_auth.call_count == 2
+
+            # Second call should have force_refresh=True
+            second_call_kwargs = mock_fetch_auth.call_args_list[1][1]
+            assert second_call_kwargs['force_refresh'] == True
+
+            # Should have successfully parsed samples
+            assert samples is not None
+            assert len(samples) == 1
+            assert samples[0].input == "1 2"
+            assert samples[0].output == "3"
+
+    def test_error_when_truly_not_logged_in(self):
+        """Test error message when user is not logged in after cookie refresh."""
+        url = "https://codeforces.com/group/test/contest/123/problem/A"
+
+        # Both fetches return "not logged in" (user is truly not logged in)
+        html_not_logged_in = '<html><a href="/enter?back=/contest">Enter</a></html>'
+
+        with patch('lib.http_utils.fetch_url_with_auth') as mock_fetch_auth:
+            mock_fetch_auth.return_value = html_not_logged_in
+
+            # Should raise PlatformError
+            with pytest.raises(PlatformError) as exc_info:
+                self.judge.fetch_samples(url)
+
+            # Check error message
+            assert "Authentication required" in str(exc_info.value)
+            assert "not logged in" in str(exc_info.value)
+
+            # Should have tried twice (initial + retry with force_refresh)
+            assert mock_fetch_auth.call_count == 2
 
 
 class TestAtCoderJudge:

@@ -51,6 +51,7 @@ class Judge(ABC):
     """Base class for online judge platforms."""
 
     platform_name: str = "Unknown"
+    requires_auth: bool = False
 
     @abstractmethod
     def detect(self, url: str) -> bool:
@@ -64,6 +65,22 @@ class Judge(ABC):
             True if URL matches this platform
         """
         pass
+
+    def needs_authentication(self, url: str) -> bool:
+        """
+        Determine if a specific URL requires authentication.
+
+        Args:
+            url: Problem or contest URL
+
+        Returns:
+            True if cookies should be used for this URL
+        """
+        return self.requires_auth or self._is_private_url(url)
+
+    def _is_private_url(self, url: str) -> bool:
+        """Override in subclasses to detect private/group URLs."""
+        return False
 
     @abstractmethod
     def fetch_problem_name(self, contest_id: str, problem_id: str) -> Optional[str]:
@@ -113,6 +130,10 @@ class CodeforcesJudge(Judge):
     def detect(self, url: str) -> bool:
         return 'codeforces.com' in url
 
+    def _is_private_url(self, url: str) -> bool:
+        """Detect if URL is for a private group."""
+        return '/group/' in url
+
     def fetch_problem_name(self, contest_id: str, problem_id: str) -> Optional[str]:
         """Fetch problem name using Codeforces API."""
         try:
@@ -141,11 +162,90 @@ class CodeforcesJudge(Judge):
 
     def fetch_samples(self, url: str) -> Optional[List[SampleTest]]:
         """Fetch samples by parsing HTML."""
+        from . import PlatformError
+
         try:
-            html = fetch_url(url, timeout=15)
-            return self._parse_samples(html)
+            if self.needs_authentication(url):
+                html = self._fetch_with_auth_retry(url)
+            else:
+                html = fetch_url(url, timeout=15)
+
+            samples = self._parse_samples(html)
+
+            # If this is a private group URL and no samples were found,
+            # check if we're actually logged in
+            if not samples and self._is_private_url(url):
+                # Check for login indicators
+                # When not logged in, Codeforces shows "Enter" and "Register" links
+                if self._is_logged_out(html):
+                    # Try refreshing cookies from browser before giving up
+                    from .http_utils import fetch_url_with_auth
+                    from .io import info
+
+                    info("  (session expired, refreshing cookies...)")
+                    html = fetch_url_with_auth(url, timeout=15, domain='codeforces.com',
+                                              force_refresh=True)
+                    samples = self._parse_samples(html)
+
+                    # If still no samples after refresh, user is not logged in
+                    if not samples and self._is_logged_out(html):
+                        raise PlatformError(
+                            "Authentication required. You are not logged in to Codeforces. "
+                            "Please log in to Codeforces in your browser (Firefox, Chrome, etc.) "
+                            "and try again."
+                        )
+
+            return samples
+        except PlatformError:
+            # Re-raise authentication errors so they show proper messages
+            raise
         except Exception:
+            # Other errors (network, parsing, etc.) just return None
             return None
+
+    def _is_logged_out(self, html: str) -> bool:
+        """Check if HTML indicates user is not logged in."""
+        return 'href="/enter?back=' in html or '<a href="/register">' in html
+
+    def _fetch_with_auth_retry(self, url: str, max_retries: int = 1) -> str:
+        """Fetch with auth, retry once if session expired."""
+        from .http_utils import fetch_url_with_auth
+        from . import PlatformError
+
+        for attempt in range(max_retries + 1):
+            force_refresh = (attempt > 0)  # Force refresh on retry
+            html = fetch_url_with_auth(url, timeout=15, domain='codeforces.com',
+                                      force_refresh=force_refresh)
+
+            # Check if authentication failed - multiple indicators:
+            # 1. Login form
+            # 2. Cloudflare verification page (shown for private groups when not logged in)
+            # 3. Redirect page
+            # Note: Don't check for just "challenges.cloudflare.com" as it appears in preconnect
+            # links on all pages. Check for the actual Turnstile script instead.
+            is_auth_failure = (
+                '<form class="loginForm"' in html or
+                'data-action="enter"' in html or
+                'Redirecting... If your browser does not' in html or
+                'challenges.cloudflare.com/turnstile' in html or  # Actual Cloudflare challenge
+                '<title>Verification</title>' in html              # Cloudflare page title
+            )
+
+            if is_auth_failure:
+                if attempt < max_retries:
+                    continue  # Retry with fresh cookies
+                else:
+                    raise PlatformError(
+                        "Authentication required. This appears to be a private group. "
+                        "Please log in to Codeforces in your browser (Firefox, Chrome, etc.) "
+                        "and try again."
+                    )
+
+            # Success - return the HTML
+            return html
+
+        # This should never be reached, but satisfy type checker
+        raise PlatformError("Failed to fetch authenticated content.")
 
     def _parse_samples(self, html: str) -> List[SampleTest]:
         """Parse sample tests from Codeforces HTML."""

@@ -17,8 +17,8 @@ import os
 import sys
 import argparse
 
-from lib import parse_problem_range, read_problem_header, save_samples, detect_judge
-from lib.io import success, warning, header, bold, log
+from lib import parse_problem_range, read_problem_header, save_samples, detect_judge, PlatformError
+from lib.io import success, warning, header, bold, log, error
 
 def fetch_problem(problem, directory):
     """Fetch samples for a single problem."""
@@ -40,16 +40,21 @@ def fetch_problem(problem, directory):
         warning(f"  ! Unsupported platform for {filename}")
         return False
 
-    samples = judge.fetch_samples(url)
-    if not samples:
-        warning(f"  ! No samples found for {filename}")
-        return False
+    try:
+        samples = judge.fetch_samples(url)
+        if not samples:
+            warning(f"  ! No samples found for {filename}")
+            return False
 
-    # Convert SampleTest objects to dict format for save_samples
-    samples_dict = [{'input': s.input, 'output': s.output} for s in samples]
-    count = save_samples(directory, problem, samples_dict)
-    success(f"  + {problem}: {count} sample(s) saved")
-    return True
+        # Convert SampleTest objects to dict format for save_samples
+        samples_dict = [{'input': s.input, 'output': s.output} for s in samples]
+        count = save_samples(directory, problem, samples_dict)
+        success(f"  + {problem}: {count} sample(s) saved")
+        return True
+    except PlatformError as e:
+        # Show authentication/platform errors with detailed message
+        error(f"  ✗ {problem}: {str(e)}")
+        return False
 
 def get_parser():
     """Creates and returns the argparse parser for the fetch command."""

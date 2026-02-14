@@ -44,7 +44,14 @@ from .parsing import (
 from .http_utils import (
     fetch_url,
     fetch_json,
+    fetch_url_with_auth,
     DEFAULT_HEADERS,
+)
+
+# Cookie utilities
+from .cookies import (
+    CookieExtractor,
+    get_cookie_extractor,
 )
 
 # File operations
@@ -159,7 +166,11 @@ __all__ = [
     # HTTP
     'fetch_url',
     'fetch_json',
+    'fetch_url_with_auth',
     'DEFAULT_HEADERS',
+    # Cookies
+    'CookieExtractor',
+    'get_cookie_extractor',
     # File operations
     'ProblemHeader',
     'generate_header',

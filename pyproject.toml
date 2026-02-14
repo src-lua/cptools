@@ -8,7 +8,7 @@ authors = [{name = "Lua"}]
 dependencies = [
     "pytest",
     "pytest-cov",
-    # adicione outras dependências se houver
+    "browser-cookie3>=0.19.1",
 ]
 
 [tool.setuptools]
