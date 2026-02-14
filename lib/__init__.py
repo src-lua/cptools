@@ -131,10 +131,12 @@ def get_command_modules():
     )
     from commands import open as open_cmd
     from commands import completion
+    from commands import add_header
 
     return {
         'new': new,
         'add': add,
+        'add_header': add_header,
         'rm': rm,
         'mark': mark,
         'status': status,

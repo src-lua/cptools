@@ -28,8 +28,46 @@ import argparse
 
 from lib import parse_problem_range, update_problem_status
 from lib.io import error, success, warning, info, bold
+from lib.fileops import generate_header, read_problem_header
+from lib.config import load_config
 
 VALID_STATUSES = ['AC', 'WA', 'TLE', 'MLE', 'RE', 'WIP', '~']
+
+
+def add_header_if_missing(filepath, problem_id, status='~'):
+    """
+    Add a header to a file that doesn't have one.
+
+    Args:
+        filepath: Path to .cpp file
+        problem_id: Problem identifier
+        status: Initial status
+
+    Returns:
+        True if header was added, False otherwise
+    """
+    config = load_config()
+    author = config.get('author', 'Unknown')
+
+    # Read existing content
+    with open(filepath, 'r') as f:
+        content = f.read()
+
+    # Generate and prepend header
+    header = generate_header(
+        problem_id=problem_id,
+        link='',
+        problem_name=None,
+        author=author,
+        status=status
+    )
+
+    with open(filepath, 'w') as f:
+        f.write(header)
+        f.write(content)
+
+    return True
+
 
 def get_parser():
     """Creates and returns the argparse parser for the mark command."""
@@ -83,7 +121,17 @@ def run():
 
         old_status = update_problem_status(filepath, new_status)
         if old_status is None:
-            warning(f"  ! {p}.cpp has no Status header")
+            # File has no header - ask to add (default: yes)
+            warning(f"  ! {p}.cpp has no cptools header")
+            response = input(f"    Add header to {p}.cpp? (Y/n): ").strip().lower()
+            if response in ['', 'y', 'yes']:
+                # Convert underscores to spaces for display
+                problem_display = p.replace('_', ' ')
+                add_header_if_missing(filepath, problem_display, new_status)
+                success(f"  + {p}: ~ -> {new_status} (header added)")
+                updated += 1
+            else:
+                info(f"    Skipped {p}.cpp")
         else:
             success(f"  + {p}: {old_status} -> {new_status}")
             updated += 1
