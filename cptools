@@ -24,10 +24,26 @@ Usage:
 """
 import sys
 import os
+import re
 
-__version__ = "0.4.1"
+def get_version():
+    """Read version from pyproject.toml."""
+    try:
+        # Use realpath to resolve symlinks
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        pyproject_path = os.path.join(script_dir, 'pyproject.toml')
+        with open(pyproject_path, 'r') as f:
+            content = f.read()
+            match = re.search(r'^version\s*=\s*["\']([^"\']+)["\']', content, re.MULTILINE)
+            if match:
+                return match.group(1)
+    except Exception:
+        pass
+    return "unknown"
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+__version__ = get_version()
+
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
 from lib.io import Colors, error, log

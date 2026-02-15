@@ -42,9 +42,14 @@ _cptools_completion() {
     fi
 
     local commands="%(commands)s"
+    local global_flags="-h --help -v --version"
 
     if [[ ${COMP_CWORD} -eq 1 ]]; then
-        COMPREPLY=( $(compgen -W "${commands}" -- ${cur}) )
+        if [[ ${cur} == -* ]]; then
+            COMPREPLY=( $(compgen -W "${global_flags}" -- ${cur}) )
+        else
+            COMPREPLY=( $(compgen -W "${commands}" -- ${cur}) )
+        fi
         return 0
     fi
 
@@ -106,11 +111,18 @@ _cptools() {
 
     case $state in
         (command)
-            local -a commands
+            local -a commands flags
             commands=(
 %(commands_desc)s
             )
+            flags=(
+                '--help:Show help message'
+                '-h:Show help message'
+                '--version:Show version information'
+                '-v:Show version information'
+            )
             _describe -t commands 'cptools command' commands
+            _describe -t flags 'global flags' flags
             ;;
         (args)
             case $line[1] in
@@ -320,15 +332,19 @@ def install(shell):
     if os.path.exists(rc_file):
         with open(rc_file, 'r') as f:
             if source_line in f.read():
-                print(f"{Colors.GREEN}✓ Completion already installed in {rc_file}{Colors.ENDC}")
+                print(f"{Colors.GREEN}✓ Completion script updated at {filepath}{Colors.ENDC}")
+                print(f"{Colors.GREEN}✓ Already sourced in {rc_file}{Colors.ENDC}")
+                print(f"\n{Colors.BOLD}{Colors.WARNING}⚠ Please restart your terminal or run:{Colors.ENDC}")
+                print(f"  {Colors.BLUE}source {rc_file}{Colors.ENDC}\n")
                 return
 
     with open(rc_file, 'a') as f:
         f.write(f"\n# cptools completion\n{source_line}\n")
-    
+
     print(f"{Colors.GREEN}✓ Installed to {filepath}{Colors.ENDC}")
     print(f"{Colors.GREEN}✓ Added source line to {rc_file}{Colors.ENDC}")
-    print(f"{Colors.BOLD}Please restart your shell.{Colors.ENDC}")
+    print(f"\n{Colors.BOLD}{Colors.WARNING}⚠ Please restart your terminal or run:{Colors.ENDC}")
+    print(f"  {Colors.BLUE}source {rc_file}{Colors.ENDC}\n")
 
 def get_parser():
     """Creates and returns the argparse parser for the completion command."""

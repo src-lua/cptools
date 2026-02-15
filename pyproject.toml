@@ -1,6 +1,6 @@
 [project]
 name = "cptools"
-dynamic = ["version"]
+version = "0.7.0"
 description = "CLI toolkit for managing competitive programming contests and solutions."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,7 +16,7 @@ dependencies = [
 packages = ["lib", "commands"]
 
 [tool.semantic_release]
-version_variable = "cptools:__version__"
+version_toml = ["pyproject.toml:project.version"]
 tag_format = "v{version}"
 major_on_zero = false
 allow_zero_version = true
