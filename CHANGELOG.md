@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v1.0.1 (2026-02-15)
+
+### Bug Fixes
+
+* fix: adjust development status ([`11a9a33`](https://github.com/src-lua/cptools/commit/11a9a334eff434daf6ea39d557d6eb4b3fbf3707))
+
+
 ## v1.0.0 (2026-02-15)
 
 ### Breaking
