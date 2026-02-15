@@ -5,13 +5,15 @@ Usage: cptools test <problem> [directory] [options]
 Compile and test a solution against samples or custom inputs.
 
 Options:
-  --add         Add a new custom test case
-  --no-out      Skip generating expected output (when adding test)
+  --add              Add a new custom test case
+  --no-out           Skip generating expected output (when adding test)
+  -i, --interactive  Force interactive mode even if samples exist
 
 Examples:
   cptools test A
   cptools test A --add
   cptools test A --add --no-out
+  cptools test A --interactive
 """
 import os
 import sys
@@ -219,6 +221,7 @@ def get_parser():
     parser.add_argument('directory', nargs='?', default=os.getcwd(), help='Target directory')
     parser.add_argument('--add', action='store_true', help='Add a new custom test case')
     parser.add_argument('--no-out', action='store_true', help='Skip generating expected output')
+    parser.add_argument('-i', '--interactive', action='store_true', help='Force interactive mode even if samples exist')
     return parser
 
 def run():
@@ -230,6 +233,7 @@ def run():
 
     add_mode = args.add
     no_output = args.no_out
+    force_interactive = args.interactive
 
     if add_mode:
         add_test(problem, directory, with_output=not no_output)
@@ -253,7 +257,16 @@ def run():
     try:
         samples = find_samples(directory, problem)
 
-        # If samples exist, always use them (regardless of stdin state)
+        # If --interactive flag is set, ignore samples and run interactively
+        if force_interactive:
+            if not sys.stdin.isatty():
+                result = subprocess.run([binary], stdin=sys.stdin)
+            else:
+                info("Running interactively (Ctrl+D to end input)...")
+                result = subprocess.run([binary])
+            sys.exit(result.returncode)
+
+        # If samples exist, use them (unless --interactive was specified)
         if samples:
             info(f"Running {len(samples)} sample(s)...\n")
             success_result = run_with_samples(binary, samples)

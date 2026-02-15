@@ -196,3 +196,68 @@ def test_sample_without_expected_output(tmp_path):
             test.run()
         # Should still pass since it's just showing output
         assert exc_info.value.code == 0
+
+
+def test_interactive_flag_with_samples(tmp_path):
+    """Test that --interactive flag forces interactive mode even when samples exist."""
+    temp_dir = str(tmp_path)
+
+    with open(os.path.join(temp_dir, "H.cpp"), 'w') as f:
+        f.write("int main() {}")
+
+    # Create sample files (which would normally trigger sample mode)
+    sample_in = os.path.join(temp_dir, "H_1.in")
+    sample_out = os.path.join(temp_dir, "H_1.out")
+    with open(sample_in, 'w') as f:
+        f.write("test input")
+    with open(sample_out, 'w') as f:
+        f.write("expected output")
+
+    mock_compile_res = MagicMock(success=True, binary_path=os.path.join(temp_dir, ".H"))
+
+    # Mock subprocess.run (not Popen) since interactive mode uses subprocess.run
+    mock_run_res = MagicMock(returncode=0)
+
+    with patch.object(sys, 'argv', ['cptools-test', 'H', temp_dir, '--interactive']), \
+         patch('commands.test.load_config', return_value={}), \
+         patch('commands.test.compile_from_config', return_value=mock_compile_res), \
+         patch('subprocess.run', return_value=mock_run_res) as mock_run, \
+         patch('sys.stdin.isatty', return_value=True):
+
+        with pytest.raises(SystemExit) as exc_info:
+            test.run()
+        # Should run in interactive mode, not sample mode
+        assert exc_info.value.code == 0
+        # Verify subprocess.run was called (interactive mode) not Popen (sample mode)
+        mock_run.assert_called_once()
+
+
+def test_interactive_flag_short_form(tmp_path):
+    """Test that -i flag (short form) works the same as --interactive."""
+    temp_dir = str(tmp_path)
+
+    with open(os.path.join(temp_dir, "I.cpp"), 'w') as f:
+        f.write("int main() {}")
+
+    # Create sample files
+    sample_in = os.path.join(temp_dir, "I_1.in")
+    sample_out = os.path.join(temp_dir, "I_1.out")
+    with open(sample_in, 'w') as f:
+        f.write("test input")
+    with open(sample_out, 'w') as f:
+        f.write("expected output")
+
+    mock_compile_res = MagicMock(success=True, binary_path=os.path.join(temp_dir, ".I"))
+    mock_run_res = MagicMock(returncode=0)
+
+    with patch.object(sys, 'argv', ['cptools-test', 'I', temp_dir, '-i']), \
+         patch('commands.test.load_config', return_value={}), \
+         patch('commands.test.compile_from_config', return_value=mock_compile_res), \
+         patch('subprocess.run', return_value=mock_run_res) as mock_run, \
+         patch('sys.stdin.isatty', return_value=True):
+
+        with pytest.raises(SystemExit) as exc_info:
+            test.run()
+        assert exc_info.value.code == 0
+        # Verify subprocess.run was called (interactive mode)
+        mock_run.assert_called_once()

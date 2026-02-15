@@ -447,6 +447,7 @@ cptools test <problem> [directory]
 
 - `--add`: Add custom test case (input + expected output)
 - `--no-out`: With `--add`, skip expected output (input only)
+- `-i, --interactive`: Force interactive mode even if samples exist
 
 **Examples:**
 
@@ -456,12 +457,15 @@ cpt test A < input.txt      # pipe custom input
 cpt test A                  # interactive stdin if no samples
 cpt test A --add            # add custom test case (input + expected output)
 cpt test A --add --no-out   # add custom test case (input only)
+cpt test A --interactive    # run interactively even if samples exist
+cpt test A -i               # short form of --interactive
 ```
 
 **Behavior:**
 
 - Compiles with configured compiler and flags
 - If sample files exist (from `cpt fetch`), tests against each one
+- With `--interactive` flag, runs in interactive mode regardless of samples
 - Reports PASS/FAIL with diff for failures
 - Displays execution time and memory usage (RSS/VM) for each test
 - Memory tracking uses aggressive sampling to catch startup allocations

@@ -204,6 +204,8 @@ cpt test A                    # test with official samples
 cpt test A --add              # add custom input + expected output
 cpt test A --add --no-out     # add input only (manual verification)
 cpt test A < edge_case.txt    # test specific case from file
+cpt test A --interactive      # run interactively even if samples exist
+cpt test A -i                 # short form of --interactive
 ```
 
 Custom test cases are saved as `A_3.in`/`A_3.out` (next available index).
