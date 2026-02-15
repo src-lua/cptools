@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v1.0.0 (2026-02-15)
+
+### Breaking
+
+* feat!: stable v1.0 release with PyPI distribution ([`d712d4d`](https://github.com/src-lua/cptools/commit/d712d4dcb9d032f576dfebb17f46a6876ce400d9))
+
+### Documentation
+
+* docs: prepare PyPI release ([`46b6a9c`](https://github.com/src-lua/cptools/commit/46b6a9cfa8c86fe8d2dfdd769f686f1fc4161e88))
+
+
 ## v0.9.2 (2026-02-15)
 
 ### Bug Fixes
