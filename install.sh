@@ -15,6 +15,15 @@ ln -sf "$REPO_DIR/cptools" "$BIN_DIR/cptools"
 ln -sf "$REPO_DIR/cptools" "$BIN_DIR/cpt"
 chmod +x "$REPO_DIR/cptools"
 
+# 3. Install Python dependencies
+echo "Installing Python dependencies..."
+if ! python3 -m pip install --user -e "$REPO_DIR" >/dev/null 2>&1; then
+    echo "  ⚠️  Warning: Failed to install Python dependencies"
+    echo "  You may need to install them manually with: pip install -e ."
+else
+    echo "  ✓ Dependencies installed successfully"
+fi
+
 # 4. Remove old cp-cli links (migration)
 rm -f "$BIN_DIR/cp-cli"
 
