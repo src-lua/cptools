@@ -1,5 +1,10 @@
 # cptools
 
+[![Tests](https://github.com/src-lua/cptools/actions/workflows/test.yml/badge.svg)](https://github.com/src-lua/cptools/actions/workflows/test.yml)
+[![PyPI](https://img.shields.io/pypi/v/lgf-cptools.svg)](https://pypi.org/project/lgf-cptools/)
+[![Python Version](https://img.shields.io/pypi/pyversions/lgf-cptools.svg)](https://pypi.org/project/lgf-cptools/)
+[![License](https://img.shields.io/github/license/src-lua/cptools.svg)](https://github.com/src-lua/cptools/blob/main/LICENSE)
+
 CLI toolkit for managing competitive programming contests and solutions.
 
 Supports Codeforces, AtCoder, CSES, Yosupo, SPOJ, vJudge, and custom judges.
