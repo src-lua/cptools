@@ -3,7 +3,7 @@ Integration tests for commands/update.py
 """
 import os
 from unittest.mock import patch
-from commands import update
+from cptools.commands import update
 
 def test_update_single_directory(tmp_path):
     """Test updating info.md in a single directory."""
@@ -54,8 +54,8 @@ def test_update_all(tmp_path):
 
     # Patch ROOT_DIR since it's a global in the module initialized at import time
     # Patch PLATFORM_DIRS to only look at our mock Codeforces dir
-    with patch('commands.update.ROOT_DIR', root), \
-         patch('commands.update.PLATFORM_DIRS', ['Codeforces']), \
+    with patch('cptools.commands.update.ROOT_DIR', root), \
+         patch('cptools.commands.update.PLATFORM_DIRS', ['Codeforces']), \
          patch('sys.argv', ['cptools-update', '--all']):
         
         update.run()
@@ -119,7 +119,7 @@ def test_update_problemset_format(tmp_path):
 
     # Mock detect_platform_from_path to return CSES
     with patch('sys.argv', ['cptools-update', str(problemset_dir)]), \
-         patch('commands.update.detect_platform_from_path', return_value=('CSES', 'dynamic_programming')):
+         patch('cptools.commands.update.detect_platform_from_path', return_value=('CSES', 'dynamic_programming')):
         update.run()
 
     info_md = problemset_dir / "info.md"
@@ -161,7 +161,7 @@ def test_update_codeforces_problemset_format(tmp_path):
 
     # Mock detect_platform_from_path to return Codeforces Problemset
     with patch('sys.argv', ['cptools-update', str(problemset_dir)]), \
-         patch('commands.update.detect_platform_from_path', return_value=('Codeforces Problemset', 'dp')):
+         patch('cptools.commands.update.detect_platform_from_path', return_value=('Codeforces Problemset', 'dp')):
         update.run()
 
     info_md = problemset_dir / "info.md"

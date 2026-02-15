@@ -4,7 +4,7 @@ Integration tests for commands/rm.py
 import os
 import sys
 from unittest.mock import patch
-from commands import rm
+from cptools.commands import rm
 
 def test_remove_problem(tmp_path):
     """Test removing problem files and associated artifacts."""

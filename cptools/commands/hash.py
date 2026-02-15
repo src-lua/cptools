@@ -18,7 +18,7 @@ import argparse
 import subprocess
 import tempfile
 
-from lib.io import error, success, header, bold, log
+from cptools.lib.io import error, success, header, bold, log
 
 # Path to hasher template
 HASHER_SOURCE_PATH = os.path.join(

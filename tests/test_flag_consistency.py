@@ -3,15 +3,15 @@ Tests to verify flag consistency across commands (Q13).
 """
 import os
 from unittest.mock import patch
-from commands import clean, commit, update, bundle, init
+from cptools.commands import clean, commit, update, bundle, init
 
 
 def test_clean_short_flag_all_works(tmp_path, monkeypatch):
     """Test that clean -a works same as --all."""
     monkeypatch.chdir(tmp_path)
 
-    with patch('commands.clean.PLATFORM_DIRS', ['TestPlatform']), \
-         patch('commands.clean.ROOT_DIR', str(tmp_path)):
+    with patch('cptools.commands.clean.PLATFORM_DIRS', ['TestPlatform']), \
+         patch('cptools.commands.clean.ROOT_DIR', str(tmp_path)):
 
         # Create test structure
         test_dir = tmp_path / 'TestPlatform'
@@ -46,8 +46,8 @@ def test_commit_short_flag_all_works(tmp_path, monkeypatch):
     """Test that commit -a works same as --all."""
     monkeypatch.chdir(tmp_path)
 
-    with patch('commands.commit.get_repo_root', return_value=str(tmp_path)), \
-         patch('commands.commit.commit_all') as mock_commit_all:
+    with patch('cptools.commands.commit.get_repo_root', return_value=str(tmp_path)), \
+         patch('cptools.commands.commit.commit_all') as mock_commit_all:
 
         with patch('sys.argv', ['cptools-commit', '-a']):
             commit.run()
@@ -60,7 +60,7 @@ def test_update_short_flag_all_works(tmp_path, monkeypatch):
     """Test that update -a works same as --all."""
     monkeypatch.chdir(tmp_path)
 
-    with patch('commands.update.update_all') as mock_update_all:
+    with patch('cptools.commands.update.update_all') as mock_update_all:
         with patch('sys.argv', ['cptools-update', '-a']):
             update.run()
 
@@ -75,7 +75,7 @@ def test_bundle_long_flag_output_works(tmp_path, monkeypatch):
     # Create test file
     (tmp_path / 'A.cpp').write_text('#include <iostream>\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={}):
+    with patch('cptools.commands.bundle.load_config', return_value={}):
         with patch('sys.argv', ['cptools-bundle', 'A', '--output', 'out.cpp']):
             bundle.run()
 
@@ -91,7 +91,7 @@ def test_bundle_long_flag_in_place_works(tmp_path, monkeypatch):
     content = '#include <iostream>\nint main() {}'
     (tmp_path / 'A.cpp').write_text(content)
 
-    with patch('commands.bundle.load_config', return_value={}):
+    with patch('cptools.commands.bundle.load_config', return_value={}):
         with patch('sys.argv', ['cptools-bundle', 'A', '--in-place']):
             bundle.run()
 
@@ -103,7 +103,7 @@ def test_init_no_git_flag_works(tmp_path):
     """Test that init --no-git works correctly."""
     target_dir = str(tmp_path)
 
-    with patch('commands.init.ensure_config'), \
+    with patch('cptools.commands.init.ensure_config'), \
          patch('subprocess.run') as mock_run:
 
         with patch('sys.argv', ['cptools-init', target_dir, '--no-git']):

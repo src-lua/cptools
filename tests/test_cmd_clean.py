@@ -4,7 +4,7 @@ Integration tests for commands/clean.py
 import os
 import sys
 from unittest.mock import patch
-from commands import clean
+from cptools.commands import clean
 import pytest
 
 def test_clean_directory(tmp_path):
@@ -46,8 +46,8 @@ def test_clean_recursive(tmp_path):
 
 def test_clean_main_with_all_flag(tmp_path):
     """Test main with --all flag."""
-    with patch('commands.clean.ROOT_DIR', str(tmp_path)), \
-         patch('commands.clean.PLATFORM_DIRS', ['Codeforces', 'AtCoder']), \
+    with patch('cptools.commands.clean.ROOT_DIR', str(tmp_path)), \
+         patch('cptools.commands.clean.PLATFORM_DIRS', ['Codeforces', 'AtCoder']), \
          patch.object(sys, 'argv', ['cptools-clean', '--all']):
 
         # Create platform directories with artifacts

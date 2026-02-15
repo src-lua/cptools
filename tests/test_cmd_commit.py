@@ -3,7 +3,7 @@ Integration tests for commands/commit.py
 """
 import os
 from unittest.mock import patch, MagicMock
-from commands import commit
+from cptools.commands import commit
 
 def test_commit_directory_success(tmp_path):
     """Test successful commit of a directory."""
@@ -11,7 +11,7 @@ def test_commit_directory_success(tmp_path):
     contest_dir = os.path.join(root, "Codeforces", "123")
     os.makedirs(contest_dir)
     
-    with patch('commands.commit.get_repo_root', return_value=root), \
+    with patch('cptools.commands.commit.get_repo_root', return_value=root), \
          patch('subprocess.run') as mock_run, \
          patch('sys.argv', ['cptools-commit', contest_dir]):
          
@@ -43,7 +43,7 @@ def test_commit_no_changes(tmp_path):
     contest_dir = os.path.join(root, "Codeforces", "123")
     os.makedirs(contest_dir)
     
-    with patch('commands.commit.get_repo_root', return_value=root), \
+    with patch('cptools.commands.commit.get_repo_root', return_value=root), \
          patch('subprocess.run') as mock_run, \
          patch('sys.argv', ['cptools-commit', contest_dir]):
          
@@ -82,8 +82,8 @@ def test_commit_all(tmp_path):
     with open(os.path.join(c1, "A.cpp"), 'w') as f: f.write("")
     with open(os.path.join(c2, "B.cpp"), 'w') as f: f.write("")
 
-    with patch('commands.commit.get_repo_root', return_value=root), \
-         patch('commands.commit.PLATFORM_DIRS', ['Codeforces']), \
+    with patch('cptools.commands.commit.get_repo_root', return_value=root), \
+         patch('cptools.commands.commit.PLATFORM_DIRS', ['Codeforces']), \
          patch('subprocess.run') as mock_run, \
          patch('sys.argv', ['cptools-commit', '--all']):
          

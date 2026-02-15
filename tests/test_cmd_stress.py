@@ -4,7 +4,7 @@ Integration tests for commands/stress.py
 import os
 import sys
 from unittest.mock import patch, MagicMock
-from commands import stress
+from cptools.commands import stress
 
 def test_stress_mismatch(tmp_path, monkeypatch):
     """Test stress command detecting a mismatch between solution and brute."""
@@ -32,8 +32,8 @@ def test_stress_mismatch(tmp_path, monkeypatch):
             if 'stdout' in kwargs: kwargs['stdout'].write("4\n") # Mismatch!
         return m
 
-    with patch('commands.stress.load_config', return_value={}), \
-         patch('commands.stress.compile_from_config', return_value=mock_compile), \
+    with patch('cptools.commands.stress.load_config', return_value={}), \
+         patch('cptools.commands.stress.compile_from_config', return_value=mock_compile), \
          patch('subprocess.run', side_effect=side_effect) as mock_run, \
          patch('sys.argv', ['cptools-stress', 'sol', 'brute', 'gen']):
         
@@ -64,8 +64,8 @@ def test_stress_success(tmp_path, monkeypatch):
         return original_range(*args)
 
     # Patch range to run only 2 iterations instead of 1,000,000
-    with patch('commands.stress.load_config', return_value={}), \
-         patch('commands.stress.compile_from_config', return_value=mock_compile), \
+    with patch('cptools.commands.stress.load_config', return_value={}), \
+         patch('cptools.commands.stress.compile_from_config', return_value=mock_compile), \
          patch('subprocess.run', return_value=mock_run), \
          patch('sys.argv', ['cptools-stress', 'sol', 'brute', 'gen']), \
          patch('builtins.range', side_effect=mock_range):

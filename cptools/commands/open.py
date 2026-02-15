@@ -17,8 +17,8 @@ import sys
 import argparse
 import webbrowser
 
-from lib.fileops import read_problem_header, find_file_case_insensitive
-from lib.io import error, info
+from cptools.lib.fileops import read_problem_header, find_file_case_insensitive
+from cptools.lib.io import error, info
 
 def get_parser():
     """Creates and returns the argparse parser for the open command."""

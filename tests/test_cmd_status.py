@@ -3,7 +3,7 @@ Integration tests for commands/status.py
 """
 import os
 from unittest.mock import patch
-from commands import status
+from cptools.commands import status
 
 def test_status_display(tmp_path, capsys):
     """Test status command output."""

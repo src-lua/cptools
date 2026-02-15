@@ -19,8 +19,8 @@ import argparse
 import re
 import subprocess
 
-from lib.config import load_config
-from lib.io import Colors, error, success, warning
+from cptools.lib.config import load_config
+from cptools.lib.io import Colors, error, success, warning
 
 
 def get_include_paths(config):
@@ -170,6 +170,6 @@ def run():
         if copy_to_clipboard(output):
             success("Bundled and copied to clipboard!")
         else:
-            from lib.io import out
+            from cptools.lib.io import out
             out(output)  # Bundled code goes to stdout for redirection
             warning("\nCould not copy to clipboard (install xclip or xsel).")

@@ -4,7 +4,7 @@ Integration tests for commands/bundle.py
 import os
 import sys
 from unittest.mock import patch
-from commands import bundle
+from cptools.commands import bundle
 import pytest
 
 def test_bundle_expands_includes(tmp_path):
@@ -23,8 +23,8 @@ def test_bundle_expands_includes(tmp_path):
 
     # Mock config and clipboard
     # We mock copy_to_clipboard to verify the final output
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'A']), \
          patch('os.getcwd', return_value=d):
 
@@ -51,8 +51,8 @@ def test_bundle_missing_include(tmp_path):
     with open(main_path, 'w') as f:
         f.write('#include <vector>\n#include "nonexistent.hpp"\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'B']), \
          patch('os.getcwd', return_value=d):
 
@@ -80,8 +80,8 @@ def test_bundle_circular_includes(tmp_path):
     with open(main_path, 'w') as f:
         f.write('#include "file1.hpp"\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'C']), \
          patch('os.getcwd', return_value=d):
 
@@ -105,7 +105,7 @@ def test_bundle_output_to_file(tmp_path):
 
     output_path = os.path.join(d, "output.cpp")
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
          patch('sys.argv', ['cptools-bundle', 'D', '-o', output_path]), \
          patch('os.getcwd', return_value=d):
 
@@ -130,7 +130,7 @@ def test_bundle_inplace(tmp_path):
     with open(main_path, 'w') as f:
         f.write('#include "mylib.hpp"\nint main() { helper(); }')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
          patch('sys.argv', ['cptools-bundle', 'E', '-i']), \
          patch('os.getcwd', return_value=d):
 
@@ -151,8 +151,8 @@ def test_bundle_no_clipboard_fallback(tmp_path, capsys):
     with open(main_path, 'w') as f:
         f.write('#include <iostream>\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=False), \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=False), \
          patch('sys.argv', ['cptools-bundle', 'F']), \
          patch('os.getcwd', return_value=d):
 
@@ -182,8 +182,8 @@ def test_bundle_deduplicate_system_includes(tmp_path):
     with open(main_path, 'w') as f:
         f.write('#include <vector>\n#include "lib1.hpp"\n#include "lib2.hpp"\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'G']), \
          patch('os.getcwd', return_value=d):
 
@@ -210,8 +210,8 @@ def test_bundle_deduplicate_using_namespace(tmp_path):
     with open(main_path, 'w') as f:
         f.write('using namespace std;\n#include "a.hpp"\n#include "b.hpp"\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'H']), \
          patch('os.getcwd', return_value=d):
 
@@ -234,8 +234,8 @@ def test_bundle_pragma_once_removed(tmp_path):
     with open(main_path, 'w') as f:
         f.write('#include "pragma_lib.hpp"\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'I']), \
          patch('os.getcwd', return_value=d):
 
@@ -254,8 +254,8 @@ def test_bundle_debug_includes_preserved(tmp_path):
     with open(main_path, 'w') as f:
         f.write('#include "debug.h"\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'J']), \
          patch('os.getcwd', return_value=d):
 
@@ -270,7 +270,7 @@ def test_bundle_file_not_found(tmp_path):
     """Test error when source file doesn't exist."""
     d = str(tmp_path)
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
          patch('sys.argv', ['cptools-bundle', 'NonExistent']), \
          patch('os.getcwd', return_value=d):
 
@@ -295,8 +295,8 @@ def test_bundle_with_include_paths(tmp_path):
 
     config = {'compiler_flags': [f'-I{str(inc_dir)}']}
 
-    with patch('commands.bundle.load_config', return_value=config), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value=config), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'K']), \
          patch('os.getcwd', return_value=d):
 
@@ -319,8 +319,8 @@ def test_bundle_strips_block_comments_from_libs(tmp_path):
     with open(main_path, 'w') as f:
         f.write('#include "commented.hpp"\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True) as mock_clip, \
          patch('sys.argv', ['cptools-bundle', 'L']), \
          patch('os.getcwd', return_value=d):
 
@@ -340,8 +340,8 @@ def test_bundle_with_cpp_extension(tmp_path):
     with open(main_path, 'w') as f:
         f.write('#include <map>\nint main() {}')
 
-    with patch('commands.bundle.load_config', return_value={'compiler_flags': []}), \
-         patch('commands.bundle.copy_to_clipboard', return_value=True), \
+    with patch('cptools.commands.bundle.load_config', return_value={'compiler_flags': []}), \
+         patch('cptools.commands.bundle.copy_to_clipboard', return_value=True), \
          patch('sys.argv', ['cptools-bundle', 'M.cpp']), \
          patch('os.getcwd', return_value=d):
 

@@ -5,12 +5,12 @@ import json
 import urllib.error
 from unittest.mock import patch, MagicMock
 import pytest
-from lib.http_utils import fetch_url, fetch_json, fetch_url_with_auth
+from cptools.lib.http_utils import fetch_url, fetch_json, fetch_url_with_auth
 import http.cookiejar
 
 def test_fetch_url_success():
     """Test successful URL fetch."""
-    with patch('lib.http_utils.urlopen') as mock_urlopen:
+    with patch('cptools.lib.http_utils.urlopen') as mock_urlopen:
         mock_response = MagicMock()
         mock_response.read.return_value = b"<html>content</html>"
         mock_response.__enter__.return_value = mock_response
@@ -21,7 +21,7 @@ def test_fetch_url_success():
 
 def test_fetch_url_failure():
     """Test URL fetch failure."""
-    with patch('lib.http_utils.urlopen') as mock_urlopen:
+    with patch('cptools.lib.http_utils.urlopen') as mock_urlopen:
         mock_urlopen.side_effect = urllib.error.URLError("Network error")
         
         with pytest.raises(Exception):
@@ -30,7 +30,7 @@ def test_fetch_url_failure():
 def test_fetch_json_success():
     """Test successful JSON fetch."""
     expected = {"status": "OK", "result": []}
-    with patch('lib.http_utils.fetch_url') as mock_fetch:
+    with patch('cptools.lib.http_utils.fetch_url') as mock_fetch:
         mock_fetch.return_value = json.dumps(expected)
         
         result = fetch_json("http://api.example.com")
@@ -38,7 +38,7 @@ def test_fetch_json_success():
 
 def test_fetch_json_failure():
     """Test JSON fetch failure (invalid JSON)."""
-    with patch('lib.http_utils.fetch_url') as mock_fetch:
+    with patch('cptools.lib.http_utils.fetch_url') as mock_fetch:
         mock_fetch.return_value = "Not JSON"
 
         with pytest.raises(Exception):
@@ -58,7 +58,7 @@ def test_fetch_url_with_cookies():
     )
     jar.set_cookie(cookie)
 
-    with patch('lib.http_utils.build_opener') as mock_build_opener:
+    with patch('cptools.lib.http_utils.build_opener') as mock_build_opener:
         mock_opener = MagicMock()
         mock_response = MagicMock()
         mock_response.read.return_value = b"authenticated content"
@@ -74,8 +74,8 @@ def test_fetch_url_with_cookies():
 
 def test_fetch_url_with_auth():
     """Test convenience wrapper for authenticated fetch."""
-    with patch('lib.http_utils.fetch_url') as mock_fetch, \
-         patch('lib.cookies.get_cookie_extractor') as mock_extractor:
+    with patch('cptools.lib.http_utils.fetch_url') as mock_fetch, \
+         patch('cptools.lib.cookies.get_cookie_extractor') as mock_extractor:
 
         mock_jar = MagicMock()
         mock_extractor.return_value.extract_cookies.return_value = mock_jar

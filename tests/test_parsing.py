@@ -1,7 +1,7 @@
 """
 Tests for lib/parsing.py - Problem range/URL parsing utilities.
 """
-from lib.parsing import parse_problem_range, parse_problem_url, parse_contest_url
+from cptools.lib.parsing import parse_problem_range, parse_problem_url, parse_contest_url
 
 
 class TestParseProblemRange:

@@ -1,12 +1,15 @@
 # cptools
 
+[![Tests](https://github.com/src-lua/cptools/actions/workflows/test.yml/badge.svg)](https://github.com/src-lua/cptools/actions/workflows/test.yml)
+[![PyPI](https://img.shields.io/pypi/v/lgf-cptools.svg)](https://pypi.org/project/lgf-cptools/)
+[![Python Version](https://img.shields.io/pypi/pyversions/lgf-cptools.svg)](https://pypi.org/project/lgf-cptools/)
+[![License](https://img.shields.io/github/license/src-lua/cptools.svg)](https://github.com/src-lua/cptools/blob/main/LICENSE)
+
 CLI toolkit for managing competitive programming contests and solutions.
 
 Supports Codeforces, AtCoder, CSES, Yosupo, SPOJ, vJudge, and custom judges.
 
 **Extensible:** Want to add support for another platform? See [docs/ADDING_JUDGES.md](docs/ADDING_JUDGES.md) for a complete guide on adding new judges.
-
-> **⚠️ Beta Software**: cptools is currently in beta (pre-1.0). Breaking changes may occur between versions. Check the commit history or issues for recent changes.
 
 ## Dependencies
 
@@ -41,28 +44,41 @@ Or with pipx (recommended for CLI tools):
 pipx install lgf-cptools
 ```
 
-After installing, the `cptools` and `cpt` commands will be available. Run `cptools config` to set your author name.
+After installing, the `cptools` and `cpt` commands will be available.
+
+**Post-install setup:**
+
+```bash
+cptools config              # Set your author name
+cptools completion --install # Install shell completions (optional)
+```
 
 ### Install from Source
 
 For development or the latest unreleased features:
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/src-lua/cptools.git
 cd cptools
-./install.sh
+
+# Option 1: Install with pipx (recommended for CLI tools)
+pipx install .
+
+# Option 2: Install with pip in editable mode (for development)
+pip install --user -e .
+
+# Option 3: Install with pip in editable mode with dev dependencies
+pip install --user -e ".[dev]"
 ```
 
-This script will:
+After installing, make sure `~/.local/bin` is in your PATH.
 
-- Check Python version (3.10+ required)
-- Create symlinks `cptools` and `cpt` in `~/.local/bin`
-- Install Python dependencies automatically
-- Configure your shell's PATH
+**Post-install setup:**
 
-**Note:** On modern Ubuntu/Debian systems (23.04+), pip is restricted by PEP 668. The installer will guide you through creating a virtual environment if needed.
-
-After installing, run `cptools config` to set your author name.
+```bash
+cptools config               # Set your author name
+cptools completion --install  # Install shell completions (optional)
+```
 
 ## Shell Completion
 

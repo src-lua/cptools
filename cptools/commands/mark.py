@@ -26,10 +26,10 @@ import os
 import sys
 import argparse
 
-from lib import parse_problem_range, update_problem_status
-from lib.io import error, success, warning, info, bold
-from lib.fileops import generate_header, read_problem_header
-from lib.config import load_config
+from cptools.lib import parse_problem_range, update_problem_status
+from cptools.lib.io import error, success, warning, info, bold
+from cptools.lib.fileops import generate_header, read_problem_header
+from cptools.lib.config import load_config
 
 VALID_STATUSES = ['AC', 'WA', 'TLE', 'MLE', 'RE', 'WIP', '~']
 

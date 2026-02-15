@@ -17,9 +17,9 @@ import argparse
 import signal
 import subprocess
 
-from lib.config import load_config
-from lib import compile_from_config
-from lib.io import error, success, warning, info, header, bold
+from cptools.lib.config import load_config
+from cptools.lib import compile_from_config
+from cptools.lib.io import error, success, warning, info, header, bold
 
 TEMP_FILES = ['_stress_sol', '_stress_brt', '_stress_gen', '_stress_chk',
               '_stress_in', '_stress_out', '_stress_out2']

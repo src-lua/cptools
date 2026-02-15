@@ -29,8 +29,8 @@ import sys
 import argparse
 import glob
 
-from lib.io import success, warning, info, header, bold
-from lib.parsing import parse_problem_range
+from cptools.lib.io import success, warning, info, header, bold
+from cptools.lib.parsing import parse_problem_range
 
 def remove_problem(problem, directory):
     """Remove a problem file and its associated samples/binaries."""

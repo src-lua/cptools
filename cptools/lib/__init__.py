@@ -149,7 +149,7 @@ def get_command_modules():
         if file_path.stem.startswith('_'):
             continue
 
-        module_name = f'commands.{file_path.stem}'
+        module_name = f'cptools.commands.{file_path.stem}'
 
         try:
             # Dynamically import the module

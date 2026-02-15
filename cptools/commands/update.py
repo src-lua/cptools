@@ -18,10 +18,10 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from lib.fileops import read_problem_header, get_repo_root, PLATFORM_DIRS
-from lib.io import error, success, warning, info, header, bold
-from lib.display_utils import get_status_emoji
-from lib.path_utils import detect_platform_from_path
+from cptools.lib.fileops import read_problem_header, get_repo_root, PLATFORM_DIRS
+from cptools.lib.io import error, success, warning, info, header, bold
+from cptools.lib.display_utils import get_status_emoji
+from cptools.lib.path_utils import detect_platform_from_path
 
 def is_problemset(platform, directory_path):
     """

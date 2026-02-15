@@ -3,13 +3,13 @@ Integration tests for commands/init.py
 """
 import os
 from unittest.mock import patch
-from commands import init
+from cptools.commands import init
 
 def test_init_creates_structure(tmp_path):
     """Test initialization of repo structure."""
     target_dir = str(tmp_path)
     
-    with patch('commands.init.ensure_config') as mock_ensure, \
+    with patch('cptools.commands.init.ensure_config') as mock_ensure, \
          patch('subprocess.run') as mock_run:
         
         mock_run.return_value.returncode = 0
@@ -35,7 +35,7 @@ def test_init_nogit(tmp_path):
     """Test initialization with --no-git."""
     target_dir = str(tmp_path)
 
-    with patch('commands.init.ensure_config'), \
+    with patch('cptools.commands.init.ensure_config'), \
          patch('subprocess.run') as mock_run:
 
         with patch('sys.argv', ['cptools-init', target_dir, '--no-git']):
@@ -51,7 +51,7 @@ def test_init_without_nogit_creates_gitignore(tmp_path):
     """Test that .gitignore is created when --no-git is NOT used (Q11)."""
     target_dir = str(tmp_path)
 
-    with patch('commands.init.ensure_config'), \
+    with patch('cptools.commands.init.ensure_config'), \
          patch('subprocess.run') as mock_run:
 
         mock_run.return_value.returncode = 0

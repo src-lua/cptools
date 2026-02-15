@@ -3,7 +3,7 @@ Tests for lib/config.py - Configuration management.
 """
 import json
 from unittest.mock import patch, mock_open
-from lib import config
+from cptools.lib import config
 
 def test_get_config_path():
     """Test that get_config_path returns the constant path."""
@@ -40,7 +40,7 @@ def test_load_config_merges_user_config():
     user_data = {"author": "TestUser", "compiler": "clang++"}
     mock_json = json.dumps(user_data)
     
-    with patch('lib.config.ensure_config'), \
+    with patch('cptools.lib.config.ensure_config'), \
          patch('builtins.open', mock_open(read_data=mock_json)):
         
         cfg = config.load_config()
@@ -53,11 +53,11 @@ def test_load_config_merges_user_config():
 def test_load_config_handles_errors():
     """Test that defaults are returned on file error or invalid JSON."""
     # Case 1: IOError
-    with patch('lib.config.ensure_config'), \
+    with patch('cptools.lib.config.ensure_config'), \
          patch('builtins.open', side_effect=IOError):
         assert config.load_config() == config.DEFAULTS
 
     # Case 2: JSONDecodeError
-    with patch('lib.config.ensure_config'), \
+    with patch('cptools.lib.config.ensure_config'), \
          patch('builtins.open', mock_open(read_data="{invalid_json")):
         assert config.load_config() == config.DEFAULTS

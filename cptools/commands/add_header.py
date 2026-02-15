@@ -22,9 +22,9 @@ import os
 import argparse
 from datetime import datetime
 
-from lib.fileops import generate_header, read_problem_header
-from lib.io import success, warning, error, info
-from lib.config import load_config
+from cptools.lib.fileops import generate_header, read_problem_header
+from cptools.lib.io import success, warning, error, info
+from cptools.lib.config import load_config
 
 
 def has_header(filepath):

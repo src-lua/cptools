@@ -3,8 +3,8 @@ Tests for lib/judges.py - Online judge platform abstractions.
 """
 import pytest
 from unittest.mock import patch, MagicMock
-from lib import PlatformError
-from lib.judges import (
+from cptools.lib import PlatformError
+from cptools.lib.judges import (
     detect_judge,
     CodeforcesJudge,
     AtCoderJudge,
@@ -55,7 +55,7 @@ class TestCodeforcesJudge:
                 ]
             }
         }
-        with patch('lib.judges.fetch_json', return_value=mock_response):
+        with patch('cptools.lib.judges.fetch_json', return_value=mock_response):
             assert self.judge.fetch_problem_name("1234", "A") == "Problem A"
             assert self.judge.fetch_problem_name("1234", "C") is None
 
@@ -68,7 +68,7 @@ class TestCodeforcesJudge:
             <div class="output"><pre>9</pre></div>
         </div>
         """
-        with patch('lib.judges.fetch_url', return_value=html):
+        with patch('cptools.lib.judges.fetch_url', return_value=html):
             samples = self.judge.fetch_samples("url")
             assert samples is not None
             assert len(samples) == 2
@@ -101,7 +101,7 @@ class TestCodeforcesJudge:
         </div>
         """
 
-        with patch('lib.http_utils.fetch_url_with_auth', return_value=html) as mock_fetch:
+        with patch('cptools.lib.http_utils.fetch_url_with_auth', return_value=html) as mock_fetch:
             samples = self.judge.fetch_samples(group_url)
 
             # Verify auth fetch was used
@@ -124,7 +124,7 @@ class TestCodeforcesJudge:
         </div>
         """
 
-        with patch('lib.http_utils.fetch_url_with_auth', side_effect=[login_html, actual_html]) as mock_fetch:
+        with patch('cptools.lib.http_utils.fetch_url_with_auth', side_effect=[login_html, actual_html]) as mock_fetch:
             html = self.judge._fetch_with_auth_retry(url)
 
             # Should have called twice (first failed, second succeeded)
@@ -167,7 +167,7 @@ class TestCodeforcesJudge:
         </html>
         """
 
-        with patch('lib.http_utils.fetch_url_with_auth') as mock_fetch_auth:
+        with patch('cptools.lib.http_utils.fetch_url_with_auth') as mock_fetch_auth:
             # First call returns "not logged in", second returns samples
             mock_fetch_auth.side_effect = [html_not_logged_in, html_with_samples]
 
@@ -193,7 +193,7 @@ class TestCodeforcesJudge:
         # Both fetches return "not logged in" (user is truly not logged in)
         html_not_logged_in = '<html><a href="/enter?back=/contest">Enter</a></html>'
 
-        with patch('lib.http_utils.fetch_url_with_auth') as mock_fetch_auth:
+        with patch('cptools.lib.http_utils.fetch_url_with_auth') as mock_fetch_auth:
             mock_fetch_auth.return_value = html_not_logged_in
 
             # Should raise PlatformError
@@ -221,7 +221,7 @@ class TestAtCoderJudge:
             <td><a href="/contests/abc123/tasks/abc123_a">Task Name</a></td>
         </tr>
         """
-        with patch('lib.judges.fetch_url', return_value=html):
+        with patch('cptools.lib.judges.fetch_url', return_value=html):
             assert self.judge.fetch_problem_name("abc123", "abc123_a") == "Task Name"
 
     def test_fetch_samples(self):
@@ -231,7 +231,7 @@ class TestAtCoderJudge:
         <h3>Sample Input 2</h3><pre>4 5</pre>
         <h3>Sample Output 2</h3><pre>9</pre>
         """
-        with patch('lib.judges.fetch_url', return_value=html):
+        with patch('cptools.lib.judges.fetch_url', return_value=html):
             samples = self.judge.fetch_samples("url")
             assert samples is not None
             assert len(samples) == 2
@@ -249,7 +249,7 @@ class TestCSESJudge:
 
     def test_fetch_problem_name(self):
         html = "<title>CSES - Weird Algorithm</title>"
-        with patch('lib.judges.fetch_url', return_value=html):
+        with patch('cptools.lib.judges.fetch_url', return_value=html):
             assert self.judge.fetch_problem_name("problemset", "1068") == "Weird Algorithm"
 
     def test_fetch_samples(self):
@@ -257,7 +257,7 @@ class TestCSESJudge:
         <p>Input:</p><pre>3</pre>
         <p>Output:</p><pre>3 10 5 16 8 4 2 1</pre>
         """
-        with patch('lib.judges.fetch_url', return_value=html):
+        with patch('cptools.lib.judges.fetch_url', return_value=html):
             samples = self.judge.fetch_samples("url")
             assert samples is not None
             assert len(samples) == 1

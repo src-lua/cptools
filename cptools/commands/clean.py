@@ -17,8 +17,8 @@ import os
 import sys
 import argparse
 
-from lib.fileops import is_removable, get_repo_root, PLATFORM_DIRS
-from lib.io import error, bold
+from cptools.lib.fileops import is_removable, get_repo_root, PLATFORM_DIRS
+from cptools.lib.io import error, bold
 
 ROOT_DIR = get_repo_root()
 
@@ -40,11 +40,11 @@ def clean_directory(directory, recursive=False):
                 rel = os.path.relpath(filepath, ROOT_DIR)
                 try:
                     os.remove(filepath)
-                    from lib.io import log
+                    from cptools.lib.io import log
                     log(f"  - {rel}")
                     removed += 1
                 except OSError as e:
-                    from lib.io import log
+                    from cptools.lib.io import log
                     log(f"  Error deleting {rel}: {e}")
     return removed
 

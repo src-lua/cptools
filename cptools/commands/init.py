@@ -18,9 +18,9 @@ import sys
 import argparse
 import subprocess
 
-from lib.judges import get_platform_directories
-from lib.config import ensure_config, get_config_path
-from lib.io import success, warning, info, header, bold
+from cptools.lib.judges import get_platform_directories
+from cptools.lib.config import ensure_config, get_config_path
+from cptools.lib.io import success, warning, info, header, bold
 
 # Path to gitignore template
 GITIGNORE_TEMPLATE_PATH = os.path.join(
@@ -88,7 +88,7 @@ def run():
     ensure_config()
     print()
     info(f"Config: {get_config_path()}")
-    from lib.io import Colors
+    from cptools.lib.io import Colors
     print(f"Run {Colors.BOLD}cptools config{Colors.ENDC} to edit author name and settings.")
 
     print()

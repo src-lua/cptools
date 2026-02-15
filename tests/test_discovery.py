@@ -6,11 +6,11 @@ import glob
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
-from lib import get_command_modules
+from cptools.lib import get_command_modules
 
 def test_all_commands_are_in_completion_module_list():
     """Ensures that command registry in lib/__init__.py is up-to-date."""
-    commands_dir = os.path.join(project_root, 'commands')
+    commands_dir = os.path.join(project_root, 'cptools', 'commands')
 
     # 1. Find all potential command modules on disk using glob
     found_modules_on_disk = set()

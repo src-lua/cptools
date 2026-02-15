@@ -313,13 +313,13 @@ def get_platform_dirs():
     Returns:
         List of top-level platform directory names
     """
-    from lib.judges import ALL_JUDGES
+    from cptools.lib.judges import ALL_JUDGES
     platform_names = [judge.platform_name for judge in ALL_JUDGES]
     return platform_names + ['Trainings', 'Other']
 
 
 # For backwards compatibility, keep PLATFORM_DIRS as a dynamic call
-# Commands that need subdirectories should import get_platform_directories from lib.judges
+# Commands that need subdirectories should import get_platform_directories from cptools.lib.judges
 PLATFORM_DIRS = get_platform_dirs()
 
 SAFE_FILES = {'LICENSE', 'Makefile', 'CNAME', 'README'}

@@ -3,7 +3,7 @@ Tests for lib/compiler.py - C++ compilation utilities.
 """
 import subprocess
 from unittest.mock import patch, MagicMock
-from lib.compiler import compile_cpp, compile_from_config, CompilationResult
+from cptools.lib.compiler import compile_cpp, compile_from_config, CompilationResult
 
 
 def test_compile_cpp_success():
@@ -54,7 +54,7 @@ def test_compile_from_config():
         "compiler": "clang++",
         "compiler_flags": ["-O3"]
     }
-    with patch('lib.compiler.compile_cpp') as mock_compile:
+    with patch('cptools.lib.compiler.compile_cpp') as mock_compile:
         compile_from_config("test.cpp", "test", config)
         
         mock_compile.assert_called_with(
@@ -65,7 +65,7 @@ def test_compile_from_config():
 def test_compile_from_config_defaults():
     """Test compilation from config falls back to defaults."""
     config = {}  # Empty config
-    with patch('lib.compiler.compile_cpp') as mock_compile:
+    with patch('cptools.lib.compiler.compile_cpp') as mock_compile:
         compile_from_config("test.cpp", "test", config)
         
         # Should use defaults defined in compile_from_config/compile_cpp logic

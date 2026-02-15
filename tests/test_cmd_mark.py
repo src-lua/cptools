@@ -3,8 +3,8 @@ Integration tests for commands/mark.py
 """
 import os
 from unittest.mock import patch
-from commands import mark
-from lib.fileops import read_problem_header
+from cptools.commands import mark
+from cptools.lib.fileops import read_problem_header
 
 def test_mark_updates_status(tmp_path):
     """Test marking a problem updates its status."""

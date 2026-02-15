@@ -4,7 +4,7 @@ Integration tests for commands/open.py
 import os
 from unittest.mock import patch
 # 'open' is a keyword, so we import the module carefully
-from commands import open as open_cmd
+from cptools.commands import open as open_cmd
 
 def test_open_browser(tmp_path):
     """Test opening problem URL in browser."""

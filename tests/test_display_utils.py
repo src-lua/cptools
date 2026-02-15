@@ -1,7 +1,7 @@
 """
 Unit tests for lib/display_utils.py
 """
-from lib.display_utils import get_status_emoji
+from cptools.lib.display_utils import get_status_emoji
 
 
 class TestGetStatusEmoji:

@@ -18,8 +18,8 @@ import sys
 import argparse
 import subprocess
 
-from lib.fileops import get_repo_root, PLATFORM_DIRS
-from lib.io import error, success, warning, header, bold
+from cptools.lib.fileops import get_repo_root, PLATFORM_DIRS
+from cptools.lib.io import error, success, warning, header, bold
 
 def commit_directory(directory, root):
     """Stage and commit a single directory. Returns True if a commit was made."""

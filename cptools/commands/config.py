@@ -17,8 +17,8 @@ import sys
 import argparse
 import subprocess
 
-from lib.io import info, error
-from lib.config import ensure_config, get_config_path
+from cptools.lib.io import info, error
+from cptools.lib.config import ensure_config, get_config_path
 
 def get_parser():
     """Creates and returns the argparse parser for the config command."""
@@ -82,7 +82,7 @@ def find_editor():
 
 def show_vim_help():
     """Display brief vim usage help for beginners."""
-    from lib.io import Colors, bold
+    from cptools.lib.io import Colors, bold
 
     print()
     bold("Vim Quick Start:")

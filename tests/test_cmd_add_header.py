@@ -3,7 +3,7 @@ Integration tests for commands/add_header.py
 """
 import os
 from unittest.mock import patch
-from commands import add_header
+from cptools.commands import add_header
 
 
 def test_add_header_basic(tmp_path):

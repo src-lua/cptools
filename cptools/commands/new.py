@@ -16,17 +16,17 @@ import sys
 import argparse
 from datetime import date
 
-from lib.fileops import get_repo_root
-from lib.config import load_config
-from lib import (
+from cptools.lib.fileops import get_repo_root
+from cptools.lib.config import load_config
+from cptools.lib import (
     parse_contest_url,
     parse_problem_range,
     generate_header,
     create_problem_file,
     detect_judge
 )
-from lib.io import error, success, warning, info, header, bold, Colors
-from lib.judges import ALL_JUDGES
+from cptools.lib.io import error, success, warning, info, header, bold, Colors
+from cptools.lib.judges import ALL_JUDGES
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = get_repo_root()

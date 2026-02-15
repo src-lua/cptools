@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 import http.cookiejar
 
-from lib.cookies import CookieExtractor, CookieCache, get_cookie_extractor
+from cptools.lib.cookies import CookieExtractor, CookieCache, get_cookie_extractor
 
 
 class TestCookieCache:
@@ -43,7 +43,7 @@ class TestCookieExtractor:
 
     def test_extraction_no_support(self):
         """Test graceful handling when browser_cookie3 not available."""
-        with patch('lib.cookies.COOKIE_SUPPORT', False):
+        with patch('cptools.lib.cookies.COOKIE_SUPPORT', False):
             extractor = CookieExtractor()
             result = extractor.extract_cookies()
             assert result is None

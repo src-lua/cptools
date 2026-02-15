@@ -16,15 +16,15 @@ import os
 import sys
 import argparse
 
-from lib.fileops import get_repo_root
-from lib.config import load_config
-from lib import (
+from cptools.lib.fileops import get_repo_root
+from cptools.lib.config import load_config
+from cptools.lib import (
     parse_problem_url,
     generate_header,
     create_problem_file,
     detect_judge
 )
-from lib.io import error, success, warning, log
+from cptools.lib.io import error, success, warning, log
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "..", "lib", "templates", "template.cpp")
@@ -116,7 +116,7 @@ def add_from_name(name, directory):
 
     if os.path.exists(sibling_path):
         try:
-            from lib.fileops import read_problem_header
+            from cptools.lib.fileops import read_problem_header
             sibling_info = read_problem_header(sibling_path)
             if sibling_info and sibling_info.link:
                 link = sibling_info.link

@@ -22,9 +22,9 @@ import subprocess
 import time
 import threading
 
-from lib.config import load_config
-from lib import find_samples, compile_from_config, next_test_index
-from lib.io import log, error, success, info, header, bold
+from cptools.lib.config import load_config
+from cptools.lib import find_samples, compile_from_config, next_test_index
+from cptools.lib.io import log, error, success, info, header, bold
 
 def get_process_memory(pid):
     """Get current memory stats from /proc/[pid]/status."""

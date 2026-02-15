@@ -1,53 +1,12 @@
 #!/usr/bin/env python3
-# Install: ./install.sh
 """
 cptools - Competitive Programming Tools
 
-Usage:
-    cptools new [url]                    Create a new contest
-    cptools add <name>                   Add a single file with template
-    cptools rm <problem>                 Remove problem files and samples
-    cptools mark <problem> [status]      Mark problem status (default: AC)
-    cptools status [directory]           Show contest progress summary
-    cptools open <problem>               Open problem URL in browser
-    cptools test <problem>               Compile and test a solution
-    cptools fetch <problem>              Fetch sample test cases
-    cptools stress <sol> <brute> <gen>   Stress test solution vs brute force
-    cptools clean [--all | directory]    Remove compiled binaries
-    cptools update [--all | directory]   Update info.md
-    cptools init [directory]             Initialize a new contest repo
-    cptools config                       Edit configuration
-    cptools commit [directory]           Commit and push changes
-    cptools bundle <problem>             Bundle includes and copy to clipboard
-    cptools hash <problem>               Hash file lines with context
-    cptools completion [--install]       Generate/install shell completion
+Main entry point for the cptools CLI application.
 """
 import sys
-import os
-import re
-
-def get_version():
-    """Read version from pyproject.toml."""
-    try:
-        # Use realpath to resolve symlinks
-        script_dir = os.path.dirname(os.path.realpath(__file__))
-        pyproject_path = os.path.join(script_dir, 'pyproject.toml')
-        with open(pyproject_path, 'r') as f:
-            content = f.read()
-            match = re.search(r'^version\s*=\s*["\']([^"\']+)["\']', content, re.MULTILINE)
-            if match:
-                return match.group(1)
-    except Exception:
-        pass
-    return "unknown"
-
-__version__ = get_version()
-
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, SCRIPT_DIR)
-
-from lib.io import Colors, error, log
-from lib import get_command_modules
+from cptools.lib.io import Colors, error, log
+from cptools.lib import get_command_modules
 
 # Get command modules registry
 COMMAND_MODULES = get_command_modules()
@@ -74,15 +33,23 @@ def print_help():
         print(f"  {Colors.GREEN}{cmd_name:<12}{Colors.ENDC}  {desc}")
 
     print(f"\nRun {Colors.BLUE}cptools <command> --help{Colors.ENDC} for more info on a command.")
+    print(f"\n{Colors.BOLD}Tip:{Colors.ENDC} Enable shell completion with {Colors.BLUE}cptools completion --install{Colors.ENDC}")
 
 def print_version():
     """Print version information."""
+    from importlib.metadata import version
+    try:
+        __version__ = version("lgf-cptools")
+    except Exception:
+        __version__ = "unknown"
+
     print(f"{Colors.BOLD}{Colors.HEADER}cptools {__version__}{Colors.ENDC}")
     print(f"Copyright (C) 2026 Lua Guimarães Fernandes")
     print(f"License MIT <https://opensource.org/licenses/MIT>")
     print(f"This is free software; you are free to change and redistribute it.")
 
 def main():
+    """Main CLI entry point."""
     if len(sys.argv) < 2 or sys.argv[1] in ['-h', '--help']:
         print_help()
         sys.exit(0)

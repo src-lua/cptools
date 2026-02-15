@@ -3,7 +3,7 @@ Integration tests for commands/add.py
 """
 import os
 from unittest.mock import patch, MagicMock
-from commands import add
+from cptools.commands import add
 
 def test_add_from_name(tmp_path):
     """Test adding a problem by name."""
@@ -14,8 +14,8 @@ def test_add_from_name(tmp_path):
     with open(template_path, 'w') as f:
         f.write("template code")
         
-    with patch('commands.add.load_config', return_value={'author': 'Me'}), \
-         patch('commands.add.TEMPLATE_PATH', template_path), \
+    with patch('cptools.commands.add.load_config', return_value={'author': 'Me'}), \
+         patch('cptools.commands.add.TEMPLATE_PATH', template_path), \
          patch('sys.argv', ['cptools-add', 'A', d]):
          
         add.run()
@@ -40,8 +40,8 @@ def test_add_from_name_sibling_link(tmp_path):
     with open(template_path, 'w') as f:
         f.write("template")
 
-    with patch('commands.add.load_config', return_value={'author': 'Me'}), \
-         patch('commands.add.TEMPLATE_PATH', template_path), \
+    with patch('cptools.commands.add.load_config', return_value={'author': 'Me'}), \
+         patch('cptools.commands.add.TEMPLATE_PATH', template_path), \
          patch('sys.argv', ['cptools-add', 'A-brute', d]):
          
         add.run()
@@ -70,11 +70,11 @@ def test_add_from_url(tmp_path):
         'link': 'http://cf/1234/A'
     }
     
-    with patch('commands.add.load_config', return_value={'author': 'Me'}), \
-         patch('commands.add.get_repo_root', return_value=root), \
-         patch('commands.add.TEMPLATE_PATH', template_path), \
-         patch('commands.add.parse_problem_url', return_value=mock_info), \
-         patch('commands.add.detect_judge') as mock_detect, \
+    with patch('cptools.commands.add.load_config', return_value={'author': 'Me'}), \
+         patch('cptools.commands.add.get_repo_root', return_value=root), \
+         patch('cptools.commands.add.TEMPLATE_PATH', template_path), \
+         patch('cptools.commands.add.parse_problem_url', return_value=mock_info), \
+         patch('cptools.commands.add.detect_judge') as mock_detect, \
          patch('sys.argv', ['cptools-add', 'http://cf/1234/A']):
          
         # Mock judge returning problem name

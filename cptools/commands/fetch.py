@@ -17,8 +17,8 @@ import os
 import sys
 import argparse
 
-from lib import parse_problem_range, read_problem_header, save_samples, detect_judge, PlatformError
-from lib.io import success, warning, header, bold, log, error
+from cptools.lib import parse_problem_range, read_problem_header, save_samples, detect_judge, PlatformError
+from cptools.lib.io import success, warning, header, bold, log, error
 
 def fetch_problem(problem, directory):
     """Fetch samples for a single problem."""

@@ -1,7 +1,7 @@
 """
 Tests for lib/io.py - IO and logging utilities.
 """
-from lib.io import Colors, log, out, error, success, warning, info, header, bold
+from cptools.lib.io import Colors, log, out, error, success, warning, info, header, bold
 
 def test_colors_exist():
     """Ensure Color constants are defined."""

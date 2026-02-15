@@ -5,7 +5,7 @@ import os
 import sys
 import subprocess
 from unittest.mock import patch
-from commands import hash as cmd_hash
+from cptools.commands import hash as cmd_hash
 import pytest
 
 def test_hash_file_stdout(tmp_path, capsys):
@@ -14,7 +14,7 @@ def test_hash_file_stdout(tmp_path, capsys):
     f.write_text("int main() {}")
 
     # Mock hasher compilation and execution
-    with patch('commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
+    with patch('cptools.commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
          patch('subprocess.run') as mock_run:
 
         mock_run.return_value.stdout = "ABC int main() {}\n"
@@ -32,7 +32,7 @@ def test_hash_file_save(tmp_path):
     f = tmp_path / "A.cpp"
     f.write_text("int main() {}")
 
-    with patch('commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
+    with patch('cptools.commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
          patch('subprocess.run') as mock_run:
 
         mock_run.return_value.stdout = "ABC int main() {}\n"
@@ -57,7 +57,7 @@ def test_hash_execution_error(tmp_path):
     f = tmp_path / "B.cpp"
     f.write_text("int main() {}")
 
-    with patch('commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
+    with patch('cptools.commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
          patch('subprocess.run', side_effect=subprocess.CalledProcessError(1, 'hasher', stderr="Error")):
 
         with pytest.raises(SystemExit) as exc_info:
@@ -76,7 +76,7 @@ def test_hash_temp_files_cleanup(tmp_path, monkeypatch):
     (tmp_path / "z.cpp").write_text("temp")
     (tmp_path / "sh").write_text("temp")
 
-    with patch('commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
+    with patch('cptools.commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
          patch('subprocess.run') as mock_run:
 
         mock_run.return_value.stdout = "XYZ int main() {}\n"
@@ -97,7 +97,7 @@ def test_hash_main_with_save(tmp_path, monkeypatch):
     f.write_text("int main() { return 0; }")
 
     with patch.object(sys, 'argv', ['cptools-hash', 'D', '--save']), \
-         patch('commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
+         patch('cptools.commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
          patch('subprocess.run') as mock_run:
 
         mock_run.return_value.stdout = "123 int main() { return 0; }\n"
@@ -116,7 +116,7 @@ def test_hash_main_without_save(tmp_path, monkeypatch, capsys):
     f.write_text("#include <iostream>")
 
     with patch.object(sys, 'argv', ['cptools-hash', 'E']), \
-         patch('commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
+         patch('cptools.commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
          patch('subprocess.run') as mock_run:
 
         mock_run.return_value.stdout = "456 #include <iostream>\n"
@@ -136,7 +136,7 @@ def test_hash_with_cpp_extension(tmp_path, monkeypatch):
     f.write_text("void foo() {}")
 
     with patch.object(sys, 'argv', ['cptools-hash', 'F.cpp']), \
-         patch('commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
+         patch('cptools.commands.hash.get_or_compile_hasher', return_value='/mock/hasher'), \
          patch('subprocess.run') as mock_run:
 
         mock_run.return_value.stdout = "789 void foo() {}\n"

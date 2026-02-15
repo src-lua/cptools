@@ -33,6 +33,10 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build package distributions
+        if: steps.release.outputs.released == 'true'
+        run: python -m build
+
       - name: Publish to PyPI
         if: steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1

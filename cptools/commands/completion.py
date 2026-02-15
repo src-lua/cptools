@@ -28,8 +28,8 @@ import os
 import sys
 import re
 import argparse
-from lib.io import Colors
-from lib import get_command_modules
+from cptools.lib.io import Colors
+from cptools.lib import get_command_modules
 
 # Commands that accept .cpp files as positional arguments
 FILE_COMMANDS = ['add', 'rm', 'mark', 'open', 'test', 'bundle']

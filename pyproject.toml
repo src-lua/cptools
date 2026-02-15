@@ -40,10 +40,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/lucastarche/cptools"
-Repository = "https://github.com/lucastarche/cptools"
-Issues = "https://github.com/lucastarche/cptools/issues"
-Documentation = "https://github.com/lucastarche/cptools/blob/main/README.md"
+Homepage = "https://github.com/src-lua/cptools"
+Repository = "https://github.com/src-lua/cptools"
+Issues = "https://github.com/src-lua/cptools/issues"
+Documentation = "https://github.com/src-lua/cptools/blob/main/README.md"
 
 [project.optional-dependencies]
 dev = [
@@ -51,8 +51,12 @@ dev = [
     "pytest-cov",
 ]
 
+[project.scripts]
+cptools = "cptools.__main__:main"
+cpt = "cptools.__main__:main"
+
 [tool.setuptools]
-packages = ["lib", "commands"]
+packages = ["cptools", "cptools.lib", "cptools.commands"]
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]

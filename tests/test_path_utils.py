@@ -1,7 +1,7 @@
 """
 Unit tests for lib/path_utils.py
 """
-from lib.path_utils import detect_platform_from_path
+from cptools.lib.path_utils import detect_platform_from_path
 
 
 class TestDetectPlatformFromPath:

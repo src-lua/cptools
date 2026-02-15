@@ -5,7 +5,7 @@ import os
 import sys
 import subprocess
 from unittest.mock import patch, MagicMock
-from commands import test
+from cptools.commands import test
 import pytest
 
 def test_run_samples_success(tmp_path):
@@ -28,9 +28,9 @@ def test_run_samples_success(tmp_path):
     mock_exec_res = MagicMock(stdout="out1\n", returncode=0)
 
     with patch.object(sys, 'argv', ['cptools-test', 'A', temp_dir]), \
-         patch('commands.test.load_config', return_value={}), \
-         patch('commands.test.compile_from_config', return_value=mock_compile_res) as mock_compile, \
-         patch('commands.test.find_samples', return_value=samples), \
+         patch('cptools.commands.test.load_config', return_value={}), \
+         patch('cptools.commands.test.compile_from_config', return_value=mock_compile_res) as mock_compile, \
+         patch('cptools.commands.test.find_samples', return_value=samples), \
          patch('subprocess.run', return_value=mock_exec_res) as mock_run, \
          patch('sys.exit') as mock_exit, \
          patch('builtins.open', create=True) as mock_open: # Mock open for reading sample files
@@ -52,8 +52,8 @@ def test_run_samples_success(tmp_path):
     mock_process.communicate.return_value = ("expected\n", "")
 
     with patch.object(sys, 'argv', ['cptools-test', 'A', temp_dir]), \
-         patch('commands.test.load_config', return_value={}), \
-         patch('commands.test.compile_from_config', return_value=mock_compile_res), \
+         patch('cptools.commands.test.load_config', return_value={}), \
+         patch('cptools.commands.test.compile_from_config', return_value=mock_compile_res), \
          patch('subprocess.Popen', return_value=mock_process), \
          patch('sys.stdin.isatty', return_value=True): # Simulate terminal
 
@@ -87,8 +87,8 @@ def test_run_samples_failure(tmp_path):
     mock_process.communicate.return_value = ("999\n", "")
 
     with patch.object(sys, 'argv', ['cptools-test', 'B', temp_dir]), \
-         patch('commands.test.load_config', return_value={}), \
-         patch('commands.test.compile_from_config', return_value=mock_compile_res), \
+         patch('cptools.commands.test.load_config', return_value={}), \
+         patch('cptools.commands.test.compile_from_config', return_value=mock_compile_res), \
          patch('subprocess.Popen', return_value=mock_process), \
          patch('sys.stdin.isatty', return_value=True):
 
@@ -108,8 +108,8 @@ def test_compilation_failure(tmp_path):
     mock_compile_res = MagicMock(success=False, stderr="error: syntax error")
 
     with patch.object(sys, 'argv', ['cptools-test', 'C', temp_dir]), \
-         patch('commands.test.load_config', return_value={}), \
-         patch('commands.test.compile_from_config', return_value=mock_compile_res):
+         patch('cptools.commands.test.load_config', return_value={}), \
+         patch('cptools.commands.test.compile_from_config', return_value=mock_compile_res):
 
         with pytest.raises(SystemExit) as exc_info:
             test.run()
@@ -121,7 +121,7 @@ def test_file_not_found(tmp_path):
     temp_dir = str(tmp_path)
 
     with patch.object(sys, 'argv', ['cptools-test', 'NonExistent', temp_dir]), \
-         patch('commands.test.load_config', return_value={}):
+         patch('cptools.commands.test.load_config', return_value={}):
 
         with pytest.raises(SystemExit) as exc_info:
             test.run()
@@ -152,8 +152,8 @@ def test_timeout_handling(tmp_path):
     mock_process.wait = MagicMock()
 
     with patch.object(sys, 'argv', ['cptools-test', 'D', temp_dir]), \
-         patch('commands.test.load_config', return_value={}), \
-         patch('commands.test.compile_from_config', return_value=mock_compile_res), \
+         patch('cptools.commands.test.load_config', return_value={}), \
+         patch('cptools.commands.test.compile_from_config', return_value=mock_compile_res), \
          patch('subprocess.Popen', return_value=mock_process), \
          patch('sys.stdin.isatty', return_value=True):
 
@@ -187,8 +187,8 @@ def test_sample_without_expected_output(tmp_path):
     mock_process.communicate.return_value = ("result\n", "")
 
     with patch.object(sys, 'argv', ['cptools-test', 'G', temp_dir]), \
-         patch('commands.test.load_config', return_value={}), \
-         patch('commands.test.compile_from_config', return_value=mock_compile_res), \
+         patch('cptools.commands.test.load_config', return_value={}), \
+         patch('cptools.commands.test.compile_from_config', return_value=mock_compile_res), \
          patch('subprocess.Popen', return_value=mock_process), \
          patch('sys.stdin.isatty', return_value=True):
 
@@ -219,8 +219,8 @@ def test_interactive_flag_with_samples(tmp_path):
     mock_run_res = MagicMock(returncode=0)
 
     with patch.object(sys, 'argv', ['cptools-test', 'H', temp_dir, '--interactive']), \
-         patch('commands.test.load_config', return_value={}), \
-         patch('commands.test.compile_from_config', return_value=mock_compile_res), \
+         patch('cptools.commands.test.load_config', return_value={}), \
+         patch('cptools.commands.test.compile_from_config', return_value=mock_compile_res), \
          patch('subprocess.run', return_value=mock_run_res) as mock_run, \
          patch('sys.stdin.isatty', return_value=True):
 
@@ -251,8 +251,8 @@ def test_interactive_flag_short_form(tmp_path):
     mock_run_res = MagicMock(returncode=0)
 
     with patch.object(sys, 'argv', ['cptools-test', 'I', temp_dir, '-i']), \
-         patch('commands.test.load_config', return_value={}), \
-         patch('commands.test.compile_from_config', return_value=mock_compile_res), \
+         patch('cptools.commands.test.load_config', return_value={}), \
+         patch('cptools.commands.test.compile_from_config', return_value=mock_compile_res), \
          patch('subprocess.run', return_value=mock_run_res) as mock_run, \
          patch('sys.stdin.isatty', return_value=True):
 

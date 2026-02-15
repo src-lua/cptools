@@ -15,10 +15,10 @@ import os
 import sys
 import argparse
 import shutil
-from lib.display_utils import get_status_emoji
-from lib.fileops import read_problem_header, generate_header
-from lib.io import error, warning, Colors, log, info
-from lib.config import load_config
+from cptools.lib.display_utils import get_status_emoji
+from cptools.lib.fileops import read_problem_header, generate_header
+from cptools.lib.io import error, warning, Colors, log, info
+from cptools.lib.config import load_config
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Show a quick summary of the current contest directory.")

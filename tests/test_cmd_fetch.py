@@ -3,8 +3,8 @@ Integration tests for commands/fetch.py
 """
 import os
 from unittest.mock import patch, MagicMock
-from commands import fetch
-from lib import PlatformError
+from cptools.commands import fetch
+from cptools.lib import PlatformError
 
 def test_fetch_samples_from_file_link(tmp_path):
     """Test fetching samples using link from local file header."""
@@ -20,7 +20,7 @@ def test_fetch_samples_from_file_link(tmp_path):
         MagicMock(input="1", output="2\n")
     ]
 
-    with patch('commands.fetch.detect_judge', return_value=mock_judge) as mock_detect, \
+    with patch('cptools.commands.fetch.detect_judge', return_value=mock_judge) as mock_detect, \
          patch('sys.argv', ['cptools-fetch', 'A', d]):
 
         fetch.run()
@@ -48,9 +48,9 @@ def test_fetch_authentication_error(tmp_path):
         "Please log in to Codeforces in your browser (Firefox, Chrome, etc.) and try again."
     )
 
-    with patch('commands.fetch.detect_judge', return_value=mock_judge), \
+    with patch('cptools.commands.fetch.detect_judge', return_value=mock_judge), \
          patch('sys.argv', ['cptools-fetch', 'A', d]), \
-         patch('commands.fetch.error') as mock_error:
+         patch('cptools.commands.fetch.error') as mock_error:
 
         fetch.run()
 

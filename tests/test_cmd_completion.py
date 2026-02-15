@@ -3,7 +3,7 @@ Integration tests for commands/completion.py
 """
 import os
 from unittest.mock import patch
-from commands import completion
+from cptools.commands import completion
 
 def test_completion_generate_bash(capsys):
     """Test generating bash completion script."""

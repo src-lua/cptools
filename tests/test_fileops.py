@@ -4,7 +4,7 @@ Tests for lib/fileops.py - File operations and header management.
 import os
 from datetime import datetime
 from unittest.mock import patch, MagicMock, mock_open
-from lib.fileops import (
+from cptools.lib.fileops import (
     generate_header,
     read_problem_header,
     update_problem_status,

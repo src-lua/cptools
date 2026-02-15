@@ -3,7 +3,7 @@ Integration tests for commands/config.py
 """
 import sys
 from unittest.mock import patch, MagicMock
-from commands import config
+from cptools.commands import config
 
 def test_config_opens_editor():
     """Test that config command launches the editor with fallback chain."""
@@ -17,8 +17,8 @@ def test_config_opens_editor():
 
     with patch.object(sys, 'argv', ['cptools-config']), \
          patch('subprocess.run', mock_run), \
-         patch('commands.config.ensure_config') as mock_ensure, \
-         patch('commands.config.get_config_path', return_value='/fake/path/config.json'):
+         patch('cptools.commands.config.ensure_config') as mock_ensure, \
+         patch('cptools.commands.config.get_config_path', return_value='/fake/path/config.json'):
 
         config.run()
 
