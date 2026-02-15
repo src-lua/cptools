@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.9.1 (2026-02-15)
+
+### Bug Fixes
+
+* fix: added flag --interactive for force interactive mode on test ([`be9247e`](https://github.com/src-lua/cptools/commit/be9247edfcbdfa81d3f32d12d5819599de6fb8c0))
+
+
 ## v0.9.0 (2026-02-15)
 
 ### Features
