@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.9.0 (2026-02-15)
+
+### Features
+
+* feat: compact mode for status ([`eeb0ddd`](https://github.com/src-lua/cptools/commit/eeb0dddc5a24676ff3cb78df9ea74c2596373ad2))
+
+
 ## v0.8.0 (2026-02-15)
 
 ### Bug Fixes
