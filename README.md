@@ -2,7 +2,7 @@
 
 CLI toolkit for managing competitive programming contests and solutions.
 
-Supports Codeforces, AtCoder, vJudge, and custom judges.
+Supports Codeforces, AtCoder, CSES, Yosupo, SPOJ, vJudge, and custom judges.
 
 > **⚠️ Beta Software**: cptools is currently in beta (pre-1.0). Breaking changes may occur between versions. Check the commit history or issues for recent changes.
 
@@ -78,166 +78,232 @@ Opens `~/.config/cptools/config.json` in your editor. Default configuration:
 - **`author`**: Your name, used in file headers
 - **`default_group_id`**: Default Codeforces group ID for training contests
 - **`compiler`**: C++ compiler command (e.g., `g++`, `clang++`)
-- **`compiler_flags`**: Array of compiler flags for building solutions
+- **`compiler_flags`**: Array of compiler flags for building solutions. Note: Add `-I<path>` flags here to support bundling custom libraries.
 - **`cookie_cache_enabled`**: Enable/disable browser cookie caching for competitive programming sites (default: `true`)
 - **`cookie_cache_max_age_hours`**: How long to cache cookies in hours. Set to `-1` to never expire (only refresh on auth failure)
 - **`preferred_browser`**: Browser to use for authentication. Set to `null` for auto-detection, or specify `"firefox"`, `"chrome"`, etc.
 
 ## Commands
 
-### `cptools new [url]`
+cptools provides commands for the complete competitive programming workflow.
 
-Create a new contest directory with solution files.
+**Quick Reference:**
+
+| Command | Description |
+| ------- | ----------- |
+| `new` | Create a new contest |
+| `init` | Initialize repository |
+| `update` | Update info.md |
+| `status` | Show contest progress |
+| `add` | Add a solution file |
+| `rm` | Remove problem files |
+| `mark` | Update problem status |
+| `open` | Open problem in browser |
+| `add_header` | Add metadata header to file |
+| `test` | Compile and test solution |
+| `fetch` | Fetch sample test cases |
+| `stress` | Stress test with brute force |
+| `bundle` | Bundle includes for submission |
+| `clean` | Remove binaries |
+| `commit` | Commit and push changes |
+| `config` | Edit configuration |
+| `completion` | Generate shell completion |
+| `hash` | Generate context-aware hash |
+
+For detailed documentation of all commands, see **[docs/COMMANDS.md](docs/COMMANDS.md)**.
+
+### Common Usage
 
 ```bash
+# Create and setup contest
 cpt new https://codeforces.com/contest/1234
-cpt new https://atcoder.jp/contests/abc300
-cpt new  # interactive mode
+cd Codeforces/1234
+cpt fetch A~E
+
+# Work on problems
+cpt test A
+cpt mark A AC
+cpt open B
+
+# Remove unwanted files
+cpt rm A-brute
+
+# Submit
+cpt bundle A
+cpt commit
 ```
 
-Auto-detects platform from URL, fetches problem names via API, and creates `.cpp` files with headers and template.
+## Advanced Usage Examples
 
-### `cptools add <name|url> [directory]`
+### Complete Contest Workflow
 
-Add a solution file. Accepts a problem name (local) or a URL (isolated problem).
+From start to finish:
 
 ```bash
-cpt add A2           # creates A2.cpp in current dir
-cpt add B-brute      # creates B-brute.cpp
+# Create contest and fetch all samples
+cpt new https://codeforces.com/contest/1234
+cd Codeforces/1234
+cpt fetch A~E                 # fetch samples for all problems
 
-# Isolated problems — creates file in Platform/Problemset/:
-cpt add https://codeforces.com/problemset/problem/1234/A
-cpt add https://codeforces.com/contest/1999/problem/G2
-cpt add https://atcoder.jp/contests/abc300/tasks/abc300_a
+# Solve problems
+cpt test A                    # test solution A
+cpt mark A                    # mark as AC
+cpt open B                    # open problem B in browser
+cpt test B
+cpt mark B
+
+# Check progress and commit
+cpt status                    # view contest progress
+cpt commit                    # commit and push changes
 ```
 
-### `cptools mark <problem> [status] [directory]`
+### Stress Testing Workflow
 
-Update problem status in the file header.
-
-```bash
-cpt mark A           # mark as AC (default)
-cpt mark B WA
-cpt mark A~E AC      # mark range
-```
-
-Statuses: `AC`, `WA`, `TLE`, `MLE`, `RE`, `WIP`, `~` (pending)
-
-### `cptools status [directory]`
-
-Show contest progress summary.
+Complete setup for finding edge cases:
 
 ```bash
-cpt status
-cpt status /path/to/contest
-```
+# Create necessary files
+cpt add A              # main solution
+cpt add A-brute        # brute force solution
+cpt add gen            # test case generator
+cpt add checker        # custom checker (optional)
 
-### `cptools open <problem> [directory]`
-
-Open the problem's URL in the browser.
-
-```bash
-cpt open A           # reads Link from A.cpp header, opens with xdg-open
-```
-
-### `cptools test <problem> [directory]`
-
-Compile and test a solution.
-
-```bash
-cpt test A                  # runs against fetched samples if available
-cpt test A < input.txt      # pipe custom input
-cpt test A                  # interactive stdin if no samples
-cpt test A --add            # add custom test case (input + expected output)
-cpt test A --add --no-out   # add custom test case (input only)
-```
-
-If sample files exist (from `cpt fetch`), tests against each one and reports PASS/FAIL. Uses compiler and flags from config.
-
-With `--add`, prompts for input (and optionally output) via stdin, saving as the next available index (e.g., `A_3.in`/`A_3.out`).
-
-### `cptools fetch <problem> [directory]`
-
-Fetch sample test cases from the problem page.
-
-```bash
-cpt fetch A          # fetch samples for problem A
-cpt fetch A~E        # fetch for all problems A through E
-```
-
-Saves as `A_1.in`, `A_1.out`, `A_2.in`, `A_2.out`, etc. Supports Codeforces and AtCoder.
-
-### `cptools stress <solution> <brute> <gen> [--checker <checker>]`
-
-Stress test: compare solution vs brute force with random inputs.
-
-```bash
-cpt stress A A-brute gen
+# Run stress test
 cpt stress A A-brute gen --checker checker
+
+# When a failing case is found, add it to test suite
+cpt test A --add < failing_case.txt
 ```
 
-- `gen` receives the iteration number as argument (`./gen 1`, `./gen 2`, ...)
-- Without `--checker`, outputs are compared byte-by-byte
-- With `--checker`, runs `./checker input output_sol output_brute`
-- Stops on first mismatch, showing input and both outputs
+The generator receives iteration number as argument (`./gen 1`, `./gen 2`, ...) and should output a random test case.
 
-### `cptools clean [-r] [--all | directory]`
+### Managing Multiple Solutions
 
-Remove compiled binaries and build artifacts.
+Different approaches for the same problem:
 
 ```bash
-cpt clean            # clean current directory (non-recursive)
-cpt clean -r         # clean current directory recursively
-cpt clean --all      # clean all platform directories (recursive)
+cpt add A              # first attempt
+cpt add A-dp           # dynamic programming approach
+cpt add A-greedy       # greedy approach
+cpt add A-brute        # brute force for verification
+
+# Test each approach
+cpt test A-dp
+cpt test A-greedy
+
+# Compare solutions with stress testing
+cpt stress A-greedy A-brute gen
 ```
 
-### `cptools update [--all | directory]`
+### Custom Test Cases
 
-Generate or update `info.md` for contest directories.
+Adding your own test cases:
 
 ```bash
-cpt update           # update current directory
-cpt update --all     # update all contests
+cpt test A                    # test with official samples
+cpt test A --add              # add custom input + expected output
+cpt test A --add --no-out     # add input only (manual verification)
+cpt test A < edge_case.txt    # test specific case from file
 ```
 
-### `cptools init [directory]`
+Custom test cases are saved as `A_3.in`/`A_3.out` (next available index).
 
-Initialize a new competitive programming repository.
+### Bundling with Local Libraries
+
+You can bundle your personal library or templates into a single submission file. The bundler resolves headers by looking at paths defined in your `config.json`.
+
+**1. Configure the Include Paths:**
+*Add your library paths using the -I flag in the compiler_flags list. Tilde expansion (~) is supported.
+
+```json
+// ~/.config/cptools/config.json
+{
+  "compiler_flags": [
+    "-O2",
+    "-std=c++17",
+    "-I/home/user/my-library",
+    "-I~/cp-templates"
+  ]
+}
+```
+
+**2. Use Quotes for Includes:**
+The bundler only processes headers included with double quotes (`""`). System headers using angle brackets (`<>`) are ignored and left as-is.
+
+```cpp
+#include <vector>           // Ignored (system header)
+#include "segtree.hpp"      // Bundled! (Found in -I paths)
+#include "graph/dsu.hpp"    // Bundled!
+```
+
+**3. Run the Bundle Command:**
 
 ```bash
-cpt init             # initialize current directory
-cpt init ~/contests  # initialize in specific path
+cpt bundle A                  # Copy expanded code to clipboard
+cpt bundle A -o submit.cpp    # Save bundled version to file
+cpt bundle A -i               # Replace original file in-place
 ```
 
-Creates platform directories (`Trainings/`, `Codeforces/`, `vJudge/`, `AtCoder/`, `Other/`), `.gitignore`, and runs `git init`. Use `--nogit` to skip `git init`.
+### Batch Operations with Ranges
 
-### `cptools bundle <problem> [directory]`
-
-Expand local includes and copy the source code to the clipboard.
+Work with multiple problems at once:
 
 ```bash
-cpt bundle A            # copies bundled code to clipboard
-cpt bundle A -o a.cpp   # saves bundled code to 'a.cpp'
-cpt bundle A -i         # modifies A.cpp in-place
+cpt fetch A~F                 # fetch samples for A, B, C, D, E, F
+cpt mark A~C AC               # mark A, B, C as accepted
+cpt mark D~E WA               # mark D, E as wrong answer
 ```
 
-Recursively inlines local header files (e.g., #include "lgf-cpLib/seg.hpp") into a single unit.
+### Isolated Problems (Problemset)
 
-- Default behavior copies directly to the system clipboard.
-- Use `-o <file>` to save the output to a specific file.
-- Use `-i` to overwrite the original source file with the bundled content.
-
-### `cptools commit [directory]`
-
-Commit and push changes for a specific contest or directory.
+Problems outside contests are organized in `Platform/Problemset/`:
 
 ```bash
-cpt commit              # commits changes in the current directory
-cpt commit .            # same as above
-cpt commit vJudge/191B  # commits a specific directory
+# Add isolated problems
+cpt add https://codeforces.com/problemset/problem/1234/A
+# Creates: Codeforces/Problemset/1234A.cpp
+
+cpt add https://atcoder.jp/contests/abc300/tasks/abc300_a
+# Creates: AtCoder/Problemset/abc300_a.cpp
+
+# Add and fetch test cases automatically
+cpt add https://codeforces.com/problemset/problem/1234/A -f
+
+# Work with them
+cd Codeforces/Problemset
+cpt test 1234A
+cpt mark 1234A AC
 ```
 
-Automates the git workflow: runs `git add <directory>`, `git commit` with an auto-generated message and `git push`.
+### Repository Maintenance
+
+Keep your repository clean:
+
+```bash
+cpt clean --all               # remove all binaries recursively
+cpt update --all              # regenerate info.md for all contests
+cpt commit Codeforces/1234    # commit specific contest
+```
+
+### Advanced Configuration
+
+Example of customized `~/.config/cptools/config.json`:
+
+```json
+{
+  "author": "YourName",
+  "compiler": "g++",
+  "compiler_flags": ["-O2", "-std=c++20", "-Wall", "-Wextra", "-fsanitize=address"],
+  "cookie_cache_max_age_hours": -1,
+  "preferred_browser": "firefox"
+}
+```
+
+**Tips:**
+
+- Add `-fsanitize=address` to catch memory errors during testing
+- Set `cookie_cache_max_age_hours` to `-1` to never expire (only refresh on auth failure)
+- Use `-std=c++20` or `-std=c++17` based on judge requirements
 
 ## Directory Structure
 
@@ -251,13 +317,15 @@ contests/
 │       ├── B.cpp
 │       └── info.md
 ├── Codeforces/
-│   └── 1234/
-├── Codeforces/Gym/
-├── Codeforces/Problemset/
-├── vJudge/
+│   ├── 1234/
+│   ├── Gym/
+│   └── Problemset/
 ├── AtCoder/
-├── AtCoder/Problemset/
+│   └── Problemset/
+├── CSES/
 ├── Yosupo/
+├── SPOJ/
+├── vJudge/
 └── Other/
 ```
 
