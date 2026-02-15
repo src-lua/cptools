@@ -122,37 +122,48 @@ from .path_utils import (
 # Command modules registry
 def get_command_modules():
     """
-    Returns a dict mapping command names to their modules.
-    Import is done lazily to avoid circular dependencies.
-    """
-    from commands import (
-        new, add, rm, mark, status, fetch, clean, update,
-        init, config, commit, bundle, stress, test, hash
-    )
-    from commands import open as open_cmd
-    from commands import completion
-    from commands import add_header
+    Auto-discovers and returns a dict mapping command names to their modules.
 
-    return {
-        'new': new,
-        'add': add,
-        'add_header': add_header,
-        'rm': rm,
-        'mark': mark,
-        'status': status,
-        'open': open_cmd,
-        'test': test,
-        'fetch': fetch,
-        'stress': stress,
-        'clean': clean,
-        'update': update,
-        'init': init,
-        'config': config,
-        'commit': commit,
-        'bundle': bundle,
-        'hash': hash,
-        'completion': completion,
-    }
+    Scans the commands/ directory for Python files and imports those that have
+    the required get_parser() and run() functions.
+
+    Returns:
+        dict: Mapping of command names to their modules
+    """
+    import importlib
+    from pathlib import Path
+
+    commands = {}
+
+    # Get the commands directory path
+    # This file is in lib/, so go up one level and into commands/
+    lib_dir = Path(__file__).parent
+    commands_dir = lib_dir.parent / 'commands'
+
+    if not commands_dir.exists():
+        return commands
+
+    # Scan all .py files in commands/
+    for file_path in commands_dir.glob('*.py'):
+        # Skip __init__.py and private modules
+        if file_path.stem.startswith('_'):
+            continue
+
+        module_name = f'commands.{file_path.stem}'
+
+        try:
+            # Dynamically import the module
+            module = importlib.import_module(module_name)
+
+            # Verify it has the required functions
+            if hasattr(module, 'get_parser') and hasattr(module, 'run'):
+                # Use the file name as the command name
+                commands[file_path.stem] = module
+        except Exception:
+            # Skip modules that fail to import or don't meet requirements
+            continue
+
+    return commands
 
 __all__ = [
     # Exceptions

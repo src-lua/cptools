@@ -80,9 +80,10 @@ If you're adding a new command, follow this checklist:
 
 - [ ] Create a new file `commands/<name>.py`.
 - [ ] Implement `get_parser()` and `run()` functions.
-- [ ] Register the command in `lib/__init__.py` by adding it to `get_command_modules()`.
 - [ ] Add generated files to `.gitignore` and `commands/init.py` if needed.
 - [ ] Add tests for the new command in `tests/test_cmd_<name>.py`.
+
+**Note:** Commands are automatically discovered from the `commands/` directory. No manual registration is required! The system will automatically detect any `.py` file in `commands/` that has both `get_parser()` and `run()` functions.
 
 For a detailed example, look at existing commands like `commands/hash.py`.
 
