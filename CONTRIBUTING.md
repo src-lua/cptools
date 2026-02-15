@@ -87,6 +87,23 @@ If you're adding a new command, follow this checklist:
 
 For a detailed example, look at existing commands like `commands/hash.py`.
 
+### Adding New Platforms (Judges)
+
+CPTools supports multiple competitive programming platforms through an extensible judge system. If you want to add support for a new platform:
+
+📖 **See the complete guide:** [docs/ADDING_JUDGES.md](docs/ADDING_JUDGES.md)
+
+The guide covers:
+
+- Architecture overview and base classes
+- Step-by-step implementation instructions
+- URL parsing and integration
+- Testing patterns with examples
+- Authentication support
+- Complete working examples
+
+We encourage contributions to expand platform support! The judge system is designed to make adding new platforms straightforward.
+
 ### Adding Commands to Autocomplete
 
 The shell completion system (`commands/completion.py`) automatically detects all commands and their flags by introspecting command modules. However, **you need to manually configure file/directory completion behavior** for new commands.
