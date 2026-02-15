@@ -6,7 +6,7 @@ Thank you for your interest in contributing to CPTools! We welcome contributions
 
 ### Prerequisites
 
-- Python 3.6+
+- Python 3.10+
 - `g++` compiler
 - Git
 
@@ -27,18 +27,61 @@ Thank you for your interest in contributing to CPTools! We welcome contributions
 
     This will install the tool and make your local changes available immediately.
 
-3. **Test your installation:**
+3. **Install development dependencies (for running tests):**
+
+    ```bash
+    # First, upgrade pip and setuptools (required for editable installs)
+    python3 -m pip install --upgrade pip setuptools
+
+    # Then install in editable mode with dev dependencies
+    pip install -e ".[dev]"
+    ```
+
+    This installs `pytest` and `pytest-cov` for running the test suite.
+
+    **Note:** Requires setuptools >= 64.0 for PEP 660 editable install support.
+
+    **On systems with PEP 668 (Ubuntu 24.04+)**, use a virtual environment (recommended):
+
+    ```bash
+    # Create a development virtual environment
+    python3 -m venv ~/.venvs/cptools-dev
+    source ~/.venvs/cptools-dev/bin/activate
+
+    # Install with dev dependencies
+    pip install --upgrade pip setuptools
+    pip install -e ".[dev]"
+    ```
+
+    To activate the venv in future sessions: `source ~/.venvs/cptools-dev/bin/activate`
+
+4. **Test your installation:**
 
     ```bash
     cptools --help
+    pytest  # Run test suite
     ```
+
+### Development Tools (Optional)
+
+#### Local Commit Linting with Husky
+
+If you want to validate commit messages locally before pushing:
+
+```bash
+npm install
+```
+
+This installs Husky, which will validate your commits using [Conventional Commits](https://www.conventionalcommits.org/) format.
+
+**Note:** This is completely optional. All pull requests are automatically validated in CI, regardless of local setup. Husky is only a convenience tool for catching issues earlier.
 
 ## How to Contribute
 
 ### 1. Find or Propose an Issue
 
-- **Find an existing issue:** Check the [issue tracker](https://github.com/your-username/cptools/issues) for bugs or features to work on. Look for issues tagged `good first issue` if you're new.
-- **Propose a new feature:** If you have an idea, please [open an issue](https://github.com/your-username/cptools/issues/new) to discuss it first.
+- **Find an existing issue:** Check the [issue tracker](https://github.com/src-lua/cptools/issues) for bugs or features to work on. Look for issues tagged `good first issue` if you're new.
+- **Propose a new feature:** If you have an idea, please [open an issue](https://github.com/src-lua/cptools/issues/new) to discuss it first.
 
 ### 2. Make Your Changes
 

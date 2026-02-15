@@ -8,6 +8,23 @@ Supports Codeforces, AtCoder, CSES, Yosupo, SPOJ, vJudge, and custom judges.
 
 > **⚠️ Beta Software**: cptools is currently in beta (pre-1.0). Breaking changes may occur between versions. Check the commit history or issues for recent changes.
 
+## Dependencies
+
+CPTools requires:
+
+- **Python 3.10+**
+- **g++** (or another C++ compiler)
+- **git**
+- **browser-cookie3** (Python package - installed automatically)
+
+The installation script will automatically install Python dependencies using `pip`.
+
+**For developers**, additional test dependencies are available:
+
+```bash
+pip install -e ".[dev]"  # Installs pytest and pytest-cov
+```
+
 ## Installation
 
 ```bash
@@ -16,7 +33,14 @@ cd cptools
 ./install.sh
 ```
 
-This creates symlinks `cptools` and `cpt` in `~/.local/bin` and sets up zsh completions.
+This script will:
+
+- Check Python version (3.10+ required)
+- Create symlinks `cptools` and `cpt` in `~/.local/bin`
+- Install Python dependencies automatically
+- Configure your shell's PATH
+
+**Note:** On modern Ubuntu/Debian systems (23.04+), pip is restricted by PEP 668. The installer will guide you through creating a virtual environment if needed.
 
 After installing, run `cptools config` to set your author name.
 

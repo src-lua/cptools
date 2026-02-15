@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "cptools"
 version = "0.9.1"
@@ -16,7 +20,6 @@ dev = [
 ]
 
 [tool.setuptools]
-# Aqui você diz ao Python para incluir as pastas lib e commands
 packages = ["lib", "commands"]
 
 [tool.semantic_release]
