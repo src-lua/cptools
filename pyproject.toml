@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cptools"
-version = "0.9.1"
+version = "0.9.2"
 description = "CLI toolkit for managing competitive programming contests and solutions."
 readme = "README.md"
 requires-python = ">=3.10"

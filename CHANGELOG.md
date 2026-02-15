@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.9.2 (2026-02-15)
+
+### Bug Fixes
+
+* fix: makes install script more robust and improove installation docs ([`a0205a6`](https://github.com/src-lua/cptools/commit/a0205a6783b100e566c1df10d4913b7a07e1e3de))
+
+* fix: workflow typo and project dependecies on install ([`fae7f2e`](https://github.com/src-lua/cptools/commit/fae7f2e1f64a76b8552115081a9173ab31cf98d0))
+
+### Documentation
+
+* docs: adding judges tutorial ([`07254a8`](https://github.com/src-lua/cptools/commit/07254a8e7610f9a81a69df7b73fca521951a4554))
+
+
 ## v0.9.1 (2026-02-15)
 
 ### Bug Fixes
