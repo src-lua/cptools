@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.8.0 (2026-02-15)
+
+### Bug Fixes
+
+* fix: version management ([`28c9f00`](https://github.com/src-lua/cptools/commit/28c9f0051b15c5517893a31337a8751c76a0b06e))
+
+### Documentation
+
+* docs: update docs ([`28882d4`](https://github.com/src-lua/cptools/commit/28882d49c6abfe73011772fc07863da0608c098e))
+
+### Features
+
+* feat: auto detect new modules ([`056d9d5`](https://github.com/src-lua/cptools/commit/056d9d545824d1b7a6187d6e1db8cee69d5d64f8))
+
+
 ## v0.7.0 (2026-02-14)
 
 ### Bug Fixes
