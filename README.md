@@ -17,7 +17,7 @@ CPTools requires:
 - **git**
 - **browser-cookie3** (Python package - installed automatically)
 
-The installation script will automatically install Python dependencies using `pip`.
+The installation will automatically handle Python dependencies.
 
 **For developers**, additional test dependencies are available:
 
@@ -26,6 +26,26 @@ pip install -e ".[dev]"  # Installs pytest and pytest-cov
 ```
 
 ## Installation
+
+### Quick Install (Recommended)
+
+Install from PyPI:
+
+```bash
+pip install lgf-cptools
+```
+
+Or with pipx (recommended for CLI tools):
+
+```bash
+pipx install lgf-cptools
+```
+
+After installing, the `cptools` and `cpt` commands will be available. Run `cptools config` to set your author name.
+
+### Install from Source
+
+For development or the latest unreleased features:
 
 ```bash
 git clone <repo-url>
