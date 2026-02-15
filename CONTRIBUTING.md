@@ -80,11 +80,78 @@ If you're adding a new command, follow this checklist:
 
 - [ ] Create a new file `commands/<name>.py`.
 - [ ] Implement `get_parser()` and `run()` functions.
-- [ ] Register the command in the `__init__.py` on commands folder.
+- [ ] Register the command in `lib/__init__.py` by adding it to `get_command_modules()`.
 - [ ] Add generated files to `.gitignore` and `commands/init.py` if needed.
 - [ ] Add tests for the new command in `tests/test_cmd_<name>.py`.
 
 For a detailed example, look at existing commands like `commands/hash.py`.
+
+### Adding Commands to Autocomplete
+
+The shell completion system (`commands/completion.py`) automatically detects all commands and their flags by introspecting command modules. However, **you need to manually configure file/directory completion behavior** for new commands.
+
+#### File Completion Commands
+
+If your command accepts `.cpp` files as positional arguments (like `add`, `rm`, `mark`, `open`, `test`, `bundle`), add it to the `FILE_COMMANDS` list at the top of `commands/completion.py`:
+
+```python
+# At the top of commands/completion.py:
+FILE_COMMANDS = ['add', 'rm', 'mark', 'open', 'test', 'bundle', 'your-new-command']
+```
+
+This enables:
+
+- Bash: Completes with `.cpp` files when not typing a flag
+- Zsh: Uses `_files -g "*.cpp"` for intelligent file completion
+
+#### Directory Completion Commands
+
+If your command accepts directories as positional arguments (like `update`, `new`), add it to the `DIR_COMMANDS` list at the top of `commands/completion.py`:
+
+```python
+# At the top of commands/completion.py:
+DIR_COMMANDS = ['update', 'new', 'your-new-command']
+```
+
+This enables:
+
+- Bash: Completes with directories when not typing a flag
+- Zsh: Uses `_files -/` for directory-only completion
+
+#### Flag-Only Commands
+
+Commands that only accept flags (no file/directory arguments) require **no manual configuration**. The completion system automatically extracts all flags from your command's `get_parser()` function.
+
+#### Testing Completion
+
+After modifying `completion.py`:
+
+1. Reinstall completion:
+
+   ```bash
+   cptools completion --install
+   ```
+
+2. Restart your shell or run:
+
+   ```bash
+   source ~/.bashrc  # or ~/.zshrc
+   ```
+
+3. Test by typing:
+
+   ```bash
+   cptools your-new-command <TAB>
+   ```
+
+#### How It Works
+
+The completion system works by:
+
+1. **Auto-discovery**: Calls `get_command_modules()` to find all commands
+2. **Flag extraction**: Uses `get_parser()` to introspect each command's flags
+3. **Template generation**: Injects command/flag data into bash/zsh completion templates
+4. **Context-aware completion**: Uses the `file_commands` and `dir_commands` lists to provide intelligent positional argument completion
 
 ### Flag Naming Conventions
 

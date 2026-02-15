@@ -18,22 +18,70 @@ This creates symlinks `cptools` and `cpt` in `~/.local/bin` and sets up zsh comp
 
 After installing, run `cptools config` to set your author name.
 
+## Shell Completion
+
+cptools provides intelligent tab completion for bash and zsh shells.
+
+### Setup
+
+```bash
+cptools completion --install
+```
+
+This will:
+
+- Auto-detect your shell (bash or zsh)
+- Generate a completion script
+- Install it to `~/.config/cptools/completion.{bash,zsh}`
+- Add a source line to your `~/.bashrc` or `~/.zshrc`
+
+After installation, restart your terminal or run `source ~/.bashrc` (or `~/.zshrc`).
+
+### Features
+
+- **Command completion**: Tab-completes all cptools subcommands
+- **Flag completion**: Context-aware flag suggestions for each command
+- **File completion**: Automatically completes `.cpp` files for commands like `add`, `rm`, `mark`, `open`, `test`, `bundle`
+- **Directory completion**: Completes directories for commands like `update`, `new`
+
+### Manual Installation
+
+To generate a completion script for a specific shell without installing:
+
+```bash
+cptools completion --shell bash   # Output bash completion script
+cptools completion --shell zsh    # Output zsh completion script
+```
+
 ## Configuration
 
 ```bash
 cptools config
 ```
 
-Opens `~/.config/cptools/config.json` in your editor. Default config:
+Opens `~/.config/cptools/config.json` in your editor. Default configuration:
 
 ```json
 {
-    "author": "Lua",
+    "author": "Dev",
     "default_group_id": "yc7Yxny414",
     "compiler": "g++",
-    "compiler_flags": ["-O2", "-std=c++17"]
+    "compiler_flags": ["-O2", "-std=c++17"],
+    "cookie_cache_enabled": true,
+    "cookie_cache_max_age_hours": 24,
+    "preferred_browser": null
 }
 ```
+
+### Configuration Options
+
+- **`author`**: Your name, used in file headers
+- **`default_group_id`**: Default Codeforces group ID for training contests
+- **`compiler`**: C++ compiler command (e.g., `g++`, `clang++`)
+- **`compiler_flags`**: Array of compiler flags for building solutions
+- **`cookie_cache_enabled`**: Enable/disable browser cookie caching for competitive programming sites (default: `true`)
+- **`cookie_cache_max_age_hours`**: How long to cache cookies in hours. Set to `-1` to never expire (only refresh on auth failure)
+- **`preferred_browser`**: Browser to use for authentication. Set to `null` for auto-detection, or specify `"firefox"`, `"chrome"`, etc.
 
 ## Commands
 

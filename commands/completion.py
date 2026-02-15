@@ -31,6 +31,12 @@ import argparse
 from lib.io import Colors
 from lib import get_command_modules
 
+# Commands that accept .cpp files as positional arguments
+FILE_COMMANDS = ['add', 'rm', 'mark', 'open', 'test', 'bundle']
+
+# Commands that accept directories as positional arguments
+DIR_COMMANDS = ['update', 'new']
+
 BASH_TEMPLATE = r"""
 _cptools_completion() {
     local cur prev words cword
@@ -185,14 +191,9 @@ def generate_bash(data):
     """
     commands = " ".join(data.keys())
 
-    # Commands that accept .cpp files as positional arguments
-    file_commands = ['add', 'rm', 'mark', 'open', 'test', 'bundle']
-    # Commands that accept directories as positional arguments
-    dir_commands = ['update', 'new']
-
     # Generate flag cases for file commands
     file_cmd_flags = ""
-    for cmd in file_commands:
+    for cmd in FILE_COMMANDS:
         if cmd in data:
             opts = " ".join([o['long'] for o in data[cmd]['options']])
             if opts:
@@ -200,7 +201,7 @@ def generate_bash(data):
 
     # Generate flag cases for directory commands
     dir_cmd_flags = ""
-    for cmd in dir_commands:
+    for cmd in DIR_COMMANDS:
         if cmd in data:
             opts = " ".join([o['long'] for o in data[cmd]['options']])
             if opts:
@@ -209,7 +210,7 @@ def generate_bash(data):
     # Generate flag cases for other commands
     other_flags = ""
     for cmd, info in data.items():
-        if cmd in file_commands or cmd in dir_commands:
+        if cmd in FILE_COMMANDS or cmd in DIR_COMMANDS:
             continue
         opts = " ".join([o['long'] for o in info['options']])
         if opts:
@@ -243,14 +244,9 @@ def generate_zsh(data):
         commands_desc_list.append(f"        '{cmd}:{desc}'")
     commands_desc = "\n".join(commands_desc_list)
 
-    # Commands that accept .cpp files as positional arguments
-    file_commands = ['add', 'rm', 'mark', 'open', 'test', 'bundle']
-    # Commands that accept directories as positional arguments
-    dir_commands = ['update', 'new']
-
     # Generate individual cases for file commands
     file_cases = ""
-    for cmd in file_commands:
+    for cmd in FILE_COMMANDS:
         if cmd in data:
             opts = []
             for o in data[cmd]['options']:
@@ -268,7 +264,7 @@ def generate_zsh(data):
 
     # Generate individual cases for directory commands
     dir_cases = ""
-    for cmd in dir_commands:
+    for cmd in DIR_COMMANDS:
         if cmd in data:
             opts = []
             for o in data[cmd]['options']:
@@ -287,7 +283,7 @@ def generate_zsh(data):
     # Generate cases for other commands
     other_cases = ""
     for cmd, info in data.items():
-        if cmd in file_commands or cmd in dir_commands:
+        if cmd in FILE_COMMANDS or cmd in DIR_COMMANDS:
             continue
 
         opts = []
