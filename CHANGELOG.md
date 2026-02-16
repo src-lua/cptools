@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v1.0.2 (2026-02-16)
+
+### Bug Fixes
+
+* fix: properly includes templates on PyPI package ([`20daf92`](https://github.com/src-lua/cptools/commit/20daf923a54672c1b82787d612e5589fc2ff1ae5))
+
+### Testing
+
+* test: better test for config, status and entry-point ([`ac91d34`](https://github.com/src-lua/cptools/commit/ac91d34ee047bfe42b7b4dbb59ecfcbeb47eb3c6))
+
+
 ## v1.0.1 (2026-02-15)
 
 ### Bug Fixes
