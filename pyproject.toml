@@ -49,6 +49,8 @@ Documentation = "https://github.com/src-lua/cptools/blob/main/README.md"
 dev = [
     "pytest",
     "pytest-cov",
+    "pre-commit",
+    "commitizen",
 ]
 
 [project.scripts]

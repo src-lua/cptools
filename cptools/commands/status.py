@@ -30,9 +30,17 @@ def get_parser():
     return parser
 
 def get_emoji_display_width(emoji):
-    """Get emoji display width (1 or 2). Uses wcwidth > manual > fallback."""
+    """Get emoji display width (1 or 2). Uses manual > wcwidth > fallback."""
     EMOJI_WIDTHS_MANUAL = {'⬜': 2, '⏱️': 1, '⚠️': 1}
 
+    # Check manual overrides first
+    base = emoji[0] if emoji else ''
+    if emoji in EMOJI_WIDTHS_MANUAL:
+        return EMOJI_WIDTHS_MANUAL[emoji]
+    if base in EMOJI_WIDTHS_MANUAL:
+        return EMOJI_WIDTHS_MANUAL[base]
+
+    # Try wcwidth if available
     try:
         import wcwidth
         width = wcwidth.wcswidth(emoji)
@@ -40,12 +48,6 @@ def get_emoji_display_width(emoji):
             return min(width, 2)
     except (ImportError, TypeError):
         pass
-
-    base = emoji[0] if emoji else ''
-    if emoji in EMOJI_WIDTHS_MANUAL:
-        return EMOJI_WIDTHS_MANUAL[emoji]
-    if base in EMOJI_WIDTHS_MANUAL:
-        return EMOJI_WIDTHS_MANUAL[base]
 
     if emoji:
         codepoint = ord(emoji[0])
