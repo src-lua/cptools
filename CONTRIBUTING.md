@@ -12,69 +12,86 @@ Thank you for your interest in contributing to CPTools! We welcome contributions
 
 ### Setup
 
-1. **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/src-lua/cptools.git
-    cd cptools
-    ```
-
-2. **Install in development mode:**
-
-    ```bash
-    ./install.sh
-    ```
-
-    This will install the tool and make your local changes available immediately.
-
-3. **Install development dependencies (for running tests):**
-
-    ```bash
-    # First, upgrade pip and setuptools (required for editable installs)
-    python3 -m pip install --upgrade pip setuptools
-
-    # Then install in editable mode with dev dependencies
-    pip install -e ".[dev]"
-    ```
-
-    This installs `pytest` and `pytest-cov` for running the test suite.
-
-    **Note:** Requires setuptools >= 64.0 for PEP 660 editable install support.
-
-    **On systems with PEP 668 (Ubuntu 24.04+)**, use a virtual environment (recommended):
-
-    ```bash
-    # Create a development virtual environment
-    python3 -m venv ~/.venvs/cptools-dev
-    source ~/.venvs/cptools-dev/bin/activate
-
-    # Install with dev dependencies
-    pip install --upgrade pip setuptools
-    pip install -e ".[dev]"
-    ```
-
-    To activate the venv in future sessions: `source ~/.venvs/cptools-dev/bin/activate`
-
-4. **Test your installation:**
-
-    ```bash
-    cptools --help
-    pytest  # Run test suite
-    ```
-
-### Development Tools (Optional)
-
-#### Local Commit Linting with Husky
-
-If you want to validate commit messages locally before pushing:
+**Clone the repository:**
 
 ```bash
-npm install
+git clone https://github.com/src-lua/cptools.git
+cd cptools
 ```
 
-This installs Husky, which will validate your commits using [Conventional Commits](https://www.conventionalcommits.org/) format.
+**Install global development tools (optional):**
 
-**Note:** This is completely optional. All pull requests are automatically validated in CI, regardless of local setup. Husky is only a convenience tool for catching issues earlier.
+These tools work across all your projects, so install them globally:
+
+```bash
+pipx install pre-commit
+pipx install commitizen
+```
+
+Then, inside the `cptools` directory, enable git hooks:
+
+```bash
+pre-commit install
+```
+
+This configures hooks that run automatically on `git commit`:
+
+- `pytest` before each commit
+- Commit message validation using [Conventional Commits](https://www.conventionalcommits.org/) format
+
+**Create a virtual environment and install:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+```
+
+This installs the project in editable mode with all development dependencies (`pytest`, `pytest-cov`, etc.).
+
+**Install development binary (optional):**
+
+To test the `cptools` command globally alongside the stable PyPI version:
+
+```bash
+pipx install -e '.[dev]' --suffix=-dev
+```
+
+This creates a `cpt-dev` command using your local development version, while `cpt` (from PyPI) remains untouched. Since it's an editable install, code changes are reflected automatically. Only reinstall with `pipx reinstall cptools-dev` if you modify dependencies or entry points.
+
+**Note:** `pipx` always creates isolated environments, so this command works whether you're inside the venv or not.
+
+**Test your setup:**
+
+```bash
+# Verify cptools points to your virtual environment
+which cptools
+# Should show: /path/to/cptools/.venv/bin/cptools
+
+cptools --help  # Or cpt-dev --help if you installed via pipx
+pytest          # Run test suite
+```
+
+**Note:** If `which cptools` points to a global installation instead of `.venv`, refresh your shell with `hash -r` or restart it with `exec $SHELL`.
+
+**Optional: Better Unicode support for status command:**
+
+If you experience alignment issues with `cpt status` (misaligned emojis), install `wcwidth`:
+
+```bash
+pip install wcwidth
+```
+
+This improves emoji width detection in terminals. Not required, but recommended for better display.
+
+**Daily workflow:**
+
+- **Develop:** VS Code uses `.venv` automatically. Run `pytest` to test.
+- **Commit:** Ensure `.venv` is active (`source .venv/bin/activate`), then use `git commit` (hooks run automatically) or `cz commit` (guided commit messages).
+- **Test binary:** Use `cpt-dev` if installed, or run `cptools` directly from the activated `.venv`.
+- **Deactivate:** When done, exit the virtual environment with `deactivate`.
+
+**Note:** Git hooks and global binaries are optional. All pull requests are automatically validated in CI.
 
 ## How to Contribute
 
@@ -101,8 +118,17 @@ This installs Husky, which will validate your commits using [Conventional Commit
 
 1. **Commit your changes** with a clear message:
 
+    **Important:** Ensure your virtual environment is active before committing:
+
     ```bash
+    source .venv/bin/activate  # Activate the virtual environment
     git commit -m "feat: Add new command for hashing"
+    ```
+
+    The pre-commit hooks require local dependencies to run tests. If you need to deactivate the virtual environment later, simply run:
+
+    ```bash
+    deactivate
     ```
 
     We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.

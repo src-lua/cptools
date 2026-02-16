@@ -369,6 +369,20 @@ Example of customized `~/.config/cptools/config.json`:
 - Set `cookie_cache_max_age_hours` to `-1` to never expire (only refresh on auth failure)
 - Use `-std=c++20` or `-std=c++17` based on judge requirements
 
+## Troubleshooting
+
+### Status Display Alignment Issues
+
+If the `cpt status` command shows misaligned emojis or broken table formatting, you can install the optional `wcwidth` library for better Unicode width calculation:
+
+```bash
+pip install wcwidth
+# or with pipx
+pipx inject lgf-cptools wcwidth
+```
+
+This is particularly helpful for terminals that render emojis with varying widths. The tool works fine without it, but `wcwidth` provides more accurate emoji width detection.
+
 ## Directory Structure
 
 Contests are organized by platform:

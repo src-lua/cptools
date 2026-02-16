@@ -1,12 +1,14 @@
-# Node / Tooling
-node_modules/
-.husky/_/
-npm-debug.log*
-
 # IDEs e Sistema
 .vscode/
 .idea/
 .DS_Store
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.virtualenv/
 
 __pycache__/
 *.pyc
