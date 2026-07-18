@@ -18,7 +18,7 @@ import argparse
 import subprocess
 
 from cptools.lib.io import info, error
-from cptools.lib.config import ensure_config, get_config_path
+from cptools.lib.config import sync_config, get_config_path
 
 def get_parser():
     """Creates and returns the argparse parser for the config command."""
@@ -99,7 +99,7 @@ def run():
     parser = get_parser()
     args = parser.parse_args()
 
-    ensure_config()
+    sync_config()
     path = get_config_path()
 
     # Use --editor flag if provided, otherwise find available editor

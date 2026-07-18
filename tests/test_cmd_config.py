@@ -127,7 +127,7 @@ class TestConfigRun:
 
         with patch.object(sys, 'argv', ['cptools-config']), \
              patch('subprocess.run', mock_run), \
-             patch('cptools.commands.config.ensure_config') as mock_ensure, \
+             patch('cptools.commands.config.sync_config') as mock_ensure, \
              patch('cptools.commands.config.get_config_path', return_value='/fake/path/config.json'):
 
             config.run()
@@ -145,7 +145,7 @@ class TestConfigRun:
 
         with patch.object(sys, 'argv', ['cptools-config', '--editor', 'vim']), \
              patch('subprocess.run', mock_run), \
-             patch('cptools.commands.config.ensure_config'), \
+             patch('cptools.commands.config.sync_config'), \
              patch('cptools.commands.config.get_config_path', return_value='/fake/config.json'):
 
             config.run()
@@ -160,7 +160,7 @@ class TestConfigRun:
 
         with patch.object(sys, 'argv', ['cptools-config', '-e', 'nano']), \
              patch('subprocess.run', mock_run), \
-             patch('cptools.commands.config.ensure_config'), \
+             patch('cptools.commands.config.sync_config'), \
              patch('cptools.commands.config.get_config_path', return_value='/fake/config.json'):
 
             config.run()
@@ -173,7 +173,7 @@ class TestConfigRun:
         """Test that vim help is shown for vim-like editors."""
         with patch.object(sys, 'argv', ['cptools-config', '--editor', 'vim']), \
              patch('subprocess.run'), \
-             patch('cptools.commands.config.ensure_config'), \
+             patch('cptools.commands.config.sync_config'), \
              patch('cptools.commands.config.get_config_path', return_value='/fake/config.json'):
 
             config.run()
@@ -186,7 +186,7 @@ class TestConfigRun:
         """Test that vim help is NOT shown for nano."""
         with patch.object(sys, 'argv', ['cptools-config', '--editor', 'nano']), \
              patch('subprocess.run'), \
-             patch('cptools.commands.config.ensure_config'), \
+             patch('cptools.commands.config.sync_config'), \
              patch('cptools.commands.config.get_config_path', return_value='/fake/config.json'):
 
             config.run()
@@ -199,7 +199,7 @@ class TestConfigRun:
         """Test error handling when editor is not found."""
         with patch.object(sys, 'argv', ['cptools-config', '--editor', 'nonexistent']), \
              patch('subprocess.run', side_effect=FileNotFoundError()), \
-             patch('cptools.commands.config.ensure_config'), \
+             patch('cptools.commands.config.sync_config'), \
              patch('cptools.commands.config.get_config_path', return_value='/fake/config.json'), \
              pytest.raises(SystemExit) as exc_info:
 
@@ -216,20 +216,20 @@ class TestConfigRun:
 
         with patch.object(sys, 'argv', ['cptools-config']), \
              patch('subprocess.run') as mock_run, \
-             patch('cptools.commands.config.ensure_config', mock_ensure), \
+             patch('cptools.commands.config.sync_config', mock_ensure), \
              patch('cptools.commands.config.get_config_path', return_value='/fake/config.json'), \
              patch('cptools.commands.config.find_editor', return_value=('nano', False)):
 
             config.run()
 
-            # Verify ensure_config was called
+            # Verify sync_config was called
             mock_ensure.assert_called_once()
 
     def test_config_displays_info(self, capsys):
         """Test that config displays path and editor info."""
         with patch.object(sys, 'argv', ['cptools-config', '--editor', 'nano']), \
              patch('subprocess.run'), \
-             patch('cptools.commands.config.ensure_config'), \
+             patch('cptools.commands.config.sync_config'), \
              patch('cptools.commands.config.get_config_path', return_value='/fake/config.json'):
 
             config.run()
