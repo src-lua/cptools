@@ -264,6 +264,57 @@ def test_update_variations_without_base(tmp_path):
     # Should NOT include v2
     assert "Version 2" not in content
 
+def test_update_version_uses_best_status(tmp_path):
+    """Test that _N versions use the highest-priority status across all versions."""
+    d = tmp_path / "contest"
+    d.mkdir()
+
+    # J.cpp is WA, J_2.cpp is AC -> should show AC
+    (d / "J.cpp").write_text(
+        "/**\n"
+        " * Problem: J - Hard Problem\n"
+        " * Status: WA\n"
+        " * Link: https://cf.com/J\n"
+        " */"
+    )
+    (d / "J_2.cpp").write_text(
+        "/**\n"
+        " * Problem: J - Hard Problem\n"
+        " * Status: AC\n"
+        " * Link: https://cf.com/J\n"
+        " */"
+    )
+
+    # K.cpp is TLE, K_2.cpp is WA -> TLE has higher priority than WA
+    (d / "K.cpp").write_text(
+        "/**\n"
+        " * Problem: K - Another Problem\n"
+        " * Status: TLE\n"
+        " */"
+    )
+    (d / "K_2.cpp").write_text(
+        "/**\n"
+        " * Problem: K - Another Problem\n"
+        " * Status: WA\n"
+        " */"
+    )
+
+    with patch('sys.argv', ['cptools-update', str(d)]):
+        update.run()
+
+    content = (d / "info.md").read_text()
+
+    # J group: best status is AC (from J_2), so J counts as solved
+    # K group: best status is TLE (higher priority than WA)
+    assert "**Progress**: 1/2 solved" in content
+
+    # J shows AC emoji
+    assert "✅" in content
+    # K shows TLE emoji, not WA emoji
+    assert "⏱️" in content
+    assert "⚠️" not in content
+
+
 def test_update_multiple_variations_prefers_base(tmp_path):
     """Test that base version is preferred over multiple variations."""
     d = tmp_path / "contest"

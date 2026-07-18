@@ -84,46 +84,67 @@ def generate_info_md(directory):
         warning(f"No .cpp files found in {directory}")
         return
 
-    # Filter out problem variations (files with -suffix)
-    # Group files by base name (before first '-')
+    # Status priority: lower rank = shown in info.md when multiple versions exist
+    _STATUS_RANK = {
+        'ac': 0, 'solved': 0, 'accepted': 0,
+        'tle': 1, 'time limit exceeded': 1, 'time limit': 1,
+        'mle': 2, 'memory limit exceeded': 2, 'memory limit': 2,
+        'wa': 3, 'wrong answer': 3,
+        're': 4, 'runtime error': 4,
+        'wip': 5, 'attempting': 5, 'in progress': 5,
+    }
+
+    def _status_rank(status):
+        return _STATUS_RANK.get(status.lower().strip(), 6)  # unknown/~ = lowest
+
+    def _base_name(stem):
+        """Return canonical problem name, stripping -variant and _N version suffixes."""
+        without_variant = stem.split('-')[0]
+        return re.sub(r'_\d+$', '', without_variant)
+
+    # Group files by base name, collapsing -variants and _N versions
     problem_groups = {}
     for cpp_file in all_cpp_files:
-        # Extract base name (e.g., "COT-compressed.cpp" -> "COT")
-        base_name = cpp_file.replace('.cpp', '').split('-')[0]
+        base_name = _base_name(cpp_file.replace('.cpp', ''))
 
         if base_name not in problem_groups:
             problem_groups[base_name] = []
         problem_groups[base_name].append(cpp_file)
 
-    # For each group, prefer the version without suffix
-    cpp_files = []
-    for base_name, files in sorted(problem_groups.items()):
-        # Check if base version exists (e.g., "COT.cpp")
-        base_file = f"{base_name}.cpp"
-        if base_file in files:
-            cpp_files.append(base_file)
-        else:
-            # No base version, use first variation alphabetically
-            cpp_files.append(sorted(files)[0])
+    info(f"Reading {len(problem_groups)} problem(s)...")
 
-    info(f"Reading {len(cpp_files)} problem files...")
-
-    # Extract problem information
+    # Extract problem information, picking best status across all versions in each group
     problems = []
-    for cpp_file in cpp_files:
-        filepath = os.path.join(directory, cpp_file)
-        header = read_problem_header(filepath)
+    for base_name, files in sorted(problem_groups.items()):
+        # Canonical file: base version if it exists, else first alphabetically
+        base_file = f"{base_name}.cpp"
+        canonical = base_file if base_file in files else sorted(files)[0]
 
-        if header:
-            char = cpp_file.replace('.cpp', '')
-            problems.append({
-                'char': char,
-                'file': cpp_file,
-                'problem': header.problem,
-                'link': header.link,
-                'status': header.status,
-                'created': header.created
-            })
+        filepath = os.path.join(directory, canonical)
+        hdr = read_problem_header(filepath)
+        if not hdr:
+            continue
+
+        # Scan all versions in the group for the highest-priority status
+        best_status = hdr.status
+        best_rank = _status_rank(best_status)
+        for other_file in files:
+            if other_file == canonical:
+                continue
+            other_hdr = read_problem_header(os.path.join(directory, other_file))
+            if other_hdr and _status_rank(other_hdr.status) < best_rank:
+                best_rank = _status_rank(other_hdr.status)
+                best_status = other_hdr.status
+
+        char = canonical.replace('.cpp', '')
+        problems.append({
+            'char': char,
+            'file': canonical,
+            'problem': hdr.problem,
+            'link': hdr.link,
+            'status': best_status,
+            'created': hdr.created
+        })
 
     if not problems:
         error("No valid problem headers found.")

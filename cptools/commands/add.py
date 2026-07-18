@@ -13,6 +13,7 @@ Examples:
   cptools add https://codeforces.com/contest/1234/problem/A -f
 """
 import os
+import re
 import sys
 import argparse
 
@@ -24,10 +25,31 @@ from cptools.lib import (
     create_problem_file,
     detect_judge
 )
-from cptools.lib.io import error, success, warning, log
+from cptools.lib.io import error, success, warning, log, Colors
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "..", "lib", "templates", "template.cpp")
+
+
+def _next_version(directory, name):
+    """Return next available version index i such that NAME_i.cpp doesn't exist."""
+    i = 2
+    while os.path.exists(os.path.join(directory, f"{name}_{i}.cpp")):
+        i += 1
+    return i
+
+
+def _prompt_version(filename, versioned_name):
+    """Ask user whether to create a versioned file. Returns True if confirmed."""
+    try:
+        answer = input(
+            f"{Colors.WARNING}{filename} already exists. "
+            f"Create {versioned_name}.cpp? [y/N]{Colors.ENDC} "
+        ).strip().lower()
+        return answer == 'y'
+    except (KeyboardInterrupt, EOFError):
+        print()
+        return False
 
 
 def add_from_url(url, autofetch):
@@ -52,8 +74,14 @@ def add_from_url(url, autofetch):
     filepath = os.path.join(dest_dir, filename)
 
     if os.path.exists(filepath):
-        warning(f"{filename} already exists in {dest_dir}.")
-        return
+        next_ver = _next_version(dest_dir, info['filename'])
+        versioned_name = f"{info['filename']}_{next_ver}"
+        if not _prompt_version(filename, versioned_name):
+            warning(f"{filename} already exists in {dest_dir}.")
+            return
+        filename = f"{versioned_name}.cpp"
+        filepath = os.path.join(dest_dir, filename)
+        # problem_id stays info['letter'] — same problem, different attempt
 
     # Try to fetch problem name using judges
     problem_name = None
@@ -101,18 +129,31 @@ def add_from_name(name, directory):
 
     filename = f"{name}.cpp"
     filepath = os.path.join(directory, filename)
+    original_path = None
+    original_name = name
 
     if os.path.exists(filepath):
-        warning(f"{filename} already exists.")
-        return
+        next_ver = _next_version(directory, name)
+        versioned_name = f"{name}_{next_ver}"
+        if not _prompt_version(filename, versioned_name):
+            warning(f"{filename} already exists.")
+            return
+        original_path = filepath
+        name = versioned_name
+        filename = f"{name}.cpp"
+        filepath = os.path.join(directory, filename)
 
     # Check if sibling files exist to inherit link
     link = ""
     problem_name = None
 
-    # Try to find a sibling file (e.g., if adding A-brute, look for A.cpp)
-    base_name = name.split('-')[0]  # A-brute -> A
-    sibling_path = os.path.join(directory, f"{base_name}.cpp")
+    # Sibling lookup: original file (versioning) or base name (variant like A-brute)
+    if original_path:
+        sibling_path = original_path
+    else:
+        base_name = name.split('-')[0]  # A-brute -> A
+        base_name = re.sub(r'_\d+$', '', base_name)  # A_2 -> A (safety net)
+        sibling_path = os.path.join(directory, f"{base_name}.cpp")
 
     if os.path.exists(sibling_path):
         try:
@@ -121,7 +162,6 @@ def add_from_name(name, directory):
             if sibling_info and sibling_info.link:
                 link = sibling_info.link
                 if sibling_info.problem:
-                    # Extract just the problem name part (after the letter)
                     parts = sibling_info.problem.split(' - ', 1)
                     if len(parts) > 1:
                         problem_name = parts[1]
@@ -129,7 +169,7 @@ def add_from_name(name, directory):
             pass
 
     header = generate_header(
-        problem_id=name,
+        problem_id=original_name,  # versioned files use original name (A, not A_2)
         link=link,
         problem_name=problem_name,
         author=config["author"]
