@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## v1.3.0 (2026-07-18)
+
+### Features
+
+* feat: add Tags field to problem header
+
+Tags appear in the header as a comma-separated list and are rendered
+as backtick chips in info.md. The Tags column is only shown when at
+least one problem in the directory has non-empty tags.
+Old files without the Tags field continue to work (parsed as None). ([`2654656`](https://github.com/src-lua/cptools/commit/26546569c2eb5cdf295b5342b941f28049f2032d))
+
+
 ## v1.2.0 (2026-07-18)
 
 ### Features
