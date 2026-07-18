@@ -228,8 +228,14 @@ def run():
     parser = get_parser()
     args = parser.parse_args()
 
-    problem = args.problem.replace('.cpp', '')
-    directory = args.directory
+    problem_arg = args.problem.replace('.cpp', '')
+    if os.sep in problem_arg or '/' in problem_arg:
+        joined = os.path.join(args.directory, problem_arg)
+        directory = os.path.dirname(joined)
+        problem = os.path.basename(joined)
+    else:
+        directory = args.directory
+        problem = problem_arg
 
     add_mode = args.add
     no_output = args.no_out
