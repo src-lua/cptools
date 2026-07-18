@@ -15,24 +15,44 @@ Examples:
 """
 import os
 import sys
+import shutil
 import argparse
 
 from cptools.lib.fileops import is_removable, get_repo_root, PLATFORM_DIRS
-from cptools.lib.io import error, bold
+from cptools.lib.io import error, bold, log
 
 ROOT_DIR = get_repo_root()
 
 def clean_directory(directory, recursive=False):
-    """Remove binaries and build artifacts from a directory."""
+    """Remove binaries, build artifacts, and .dSYM bundles from a directory."""
     removed = 0
     if recursive:
-        entries = os.walk(directory)
+        walker = os.walk(directory)
     else:
-        entries = [(directory, [], os.listdir(directory))]
+        try:
+            entries = os.listdir(directory)
+            subdirs = [e for e in entries if os.path.isdir(os.path.join(directory, e))]
+            files = [e for e in entries if os.path.isfile(os.path.join(directory, e))]
+            walker = [(directory, subdirs, files)]
+        except OSError:
+            return 0
 
-    for root, dirs, files in entries:
+    for root, dirs, files in walker:
         if recursive:
             dirs[:] = [d for d in dirs if not d.startswith('.')]
+
+        # Remove .dSYM bundles (Mac debug symbol directories)
+        for d in list(dirs):
+            if d.endswith('.dSYM'):
+                dirpath = os.path.join(root, d)
+                rel = os.path.relpath(dirpath, ROOT_DIR)
+                try:
+                    shutil.rmtree(dirpath)
+                    log(f"  - {rel}/")
+                    removed += 1
+                    dirs.remove(d)
+                except OSError as e:
+                    log(f"  Error deleting {rel}: {e}")
 
         for f in files:
             filepath = os.path.join(root, f)
@@ -40,11 +60,9 @@ def clean_directory(directory, recursive=False):
                 rel = os.path.relpath(filepath, ROOT_DIR)
                 try:
                     os.remove(filepath)
-                    from cptools.lib.io import log
                     log(f"  - {rel}")
                     removed += 1
                 except OSError as e:
-                    from cptools.lib.io import log
                     log(f"  Error deleting {rel}: {e}")
     return removed
 
