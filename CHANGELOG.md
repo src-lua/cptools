@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v1.2.0 (2026-07-18)
+
+### Features
+
+* feat: prompt to create versioned file when problem already exists
+
+When cpt add targets an existing file, prompts to create NAME_i.cpp
+(next available index). info.md groups _N versions together and shows
+the highest-priority status across all versions (AC > TLE > MLE > WA > RE > WIP > ~). ([`337c79e`](https://github.com/src-lua/cptools/commit/337c79ecbe99c7c9af69ebac51f82b14cbfd94ce))
+
+
 ## v1.1.0 (2026-07-18)
 
 ### Bug Fixes
