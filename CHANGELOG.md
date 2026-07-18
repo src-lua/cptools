@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v1.1.0 (2026-07-18)
+
+### Bug Fixes
+
+* fix: resolve path argument in cpt test ([`a026bc3`](https://github.com/src-lua/cptools/commit/a026bc3d222724bc4cd03ffef7adf070cb9fe1e4))
+
+* fix: remove .dSYM debug directories in cpt clean on macOS ([`16e8e59`](https://github.com/src-lua/cptools/commit/16e8e598856157715e84a7fdbb113bc62ab0c2e6))
+
+* fix: support Codeforces gym contests via HMAC-SHA512 API auth ([`5dba73c`](https://github.com/src-lua/cptools/commit/5dba73ce7645db92e502293bfdbea88d1058d423))
+
+* fix: add pbcopy support for clipboard on macOS ([`76e2e57`](https://github.com/src-lua/cptools/commit/76e2e572e75df935d20e6a8d256777ffd4437887))
+
+### Chores
+
+* chore: ignore uv.lock ([`356a4c0`](https://github.com/src-lua/cptools/commit/356a4c09a445afa1e15a377aeaac95afaf95bcd4))
+
+* chore: replace npm/husky with python/pre-commit
+
+Removes node dependencies and migrates git hooks to pre-commit for a pure Python dev environment. ([`e4f3512`](https://github.com/src-lua/cptools/commit/e4f35125bfb46ea01582d232d85d7156e1f42d9a))
+
+### Features
+
+* feat: sync missing config fields when running cpt config ([`7821b4a`](https://github.com/src-lua/cptools/commit/7821b4a564ebeee1853f8eeb09ee7f6d24cdfcf0))
+
+
 ## v1.0.2 (2026-02-16)
 
 ### Bug Fixes
