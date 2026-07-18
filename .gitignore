@@ -3,6 +3,9 @@
 .idea/
 .DS_Store
 
+# uv
+uv.lock
+
 # Virtual environments
 .venv/
 venv/
