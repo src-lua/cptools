@@ -119,7 +119,7 @@ def bundle_file(filepath, include_dirs, included_files, seen_sys_includes, seen_
 
 def copy_to_clipboard(text):
     """Try to copy text to clipboard. Returns True on success."""
-    for cmd in [['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input'], ['wl-copy']]:
+    for cmd in [['pbcopy'], ['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input'], ['wl-copy']]:
         try:
             proc = subprocess.run(cmd, input=text, text=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             if proc.returncode == 0:
@@ -172,4 +172,4 @@ def run():
         else:
             from cptools.lib.io import out
             out(output)  # Bundled code goes to stdout for redirection
-            warning("\nCould not copy to clipboard (install xclip or xsel).")
+            warning("\nCould not copy to clipboard (install pbcopy, xclip, or xsel).")
