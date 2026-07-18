@@ -9,12 +9,14 @@ CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
 
 DEFAULTS = {
     "author": "Dev",
-    "default_group_id": "yc7Yxny414",
+    "default_group_id": None,  # Codeforces group ID used as default when creating group contests
     "compiler": "g++",
     "compiler_flags": ["-O2", "-std=c++17"],
     "cookie_cache_enabled": True,
     "cookie_cache_max_age_hours": 24,  # -1 = never expire (only refresh on auth failure)
     "preferred_browser": None,  # None = auto-detect, or "firefox", "chrome", etc.
+    "cf_api_key": None,     # Codeforces API key (from codeforces.com/settings/api)
+    "cf_api_secret": None,  # Codeforces API secret
 }
 
 def get_config_path():
@@ -29,6 +31,26 @@ def ensure_config():
     with open(CONFIG_PATH, 'w') as f:
         json.dump(DEFAULTS, f, indent=4)
         f.write('\n')
+
+
+def sync_config():
+    """Add any keys missing from the config file using their default values."""
+    ensure_config()
+    try:
+        with open(CONFIG_PATH, 'r') as f:
+            user_config = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        user_config = {}
+
+    missing = {k: DEFAULTS[k] for k in DEFAULTS if k not in user_config}
+    if not missing:
+        return
+
+    user_config.update(missing)
+    with open(CONFIG_PATH, 'w') as f:
+        json.dump(user_config, f, indent=4)
+        f.write('\n')
+
 
 def load_config():
     """Load config, merging with defaults for any missing keys."""

@@ -55,7 +55,10 @@ class TestCodeforcesJudge:
                 ]
             }
         }
-        with patch('cptools.lib.judges.fetch_json', return_value=mock_response):
+        mock_config = {'cf_api_key': 'testkey', 'cf_api_secret': 'testsecret'}
+        with patch('cptools.lib.judges.fetch_json', return_value=mock_response), \
+             patch('cptools.lib.judges.CodeforcesJudge._build_api_url',
+                   return_value='https://codeforces.com/api/contest.standings?mock=1'):
             assert self.judge.fetch_problem_name("1234", "A") == "Problem A"
             assert self.judge.fetch_problem_name("1234", "C") is None
 

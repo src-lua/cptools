@@ -23,7 +23,8 @@ from cptools.lib import (
     parse_problem_range,
     generate_header,
     create_problem_file,
-    detect_judge
+    detect_judge,
+    PlatformError
 )
 from cptools.lib.io import error, success, warning, info, header, bold, Colors
 from cptools.lib.judges import ALL_JUDGES
@@ -73,6 +74,8 @@ def create_contest_from_url(url):
             problem_names = judge.fetch_contest_problems(contest_info['contest_id'])
             if problem_names:
                 success(f"Found {len(problem_names)} problem(s)")
+        except PlatformError as e:
+            warning(f"  ! {e}")
         except Exception:
             pass
 

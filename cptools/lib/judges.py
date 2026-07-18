@@ -6,9 +6,13 @@ competitive programming platforms (Codeforces, AtCoder, CSES, etc.).
 """
 import re
 import json
+import hashlib
+import random
+import time as _time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, List, Dict
+from urllib.parse import urlencode
 
 from .http_utils import fetch_url, fetch_json
 
@@ -134,13 +138,60 @@ class CodeforcesJudge(Judge):
         """Detect if URL is for a private group."""
         return '/group/' in url
 
+    def _build_api_url(self, method: str, params: dict) -> Optional[str]:
+        """Build a signed Codeforces API URL. Returns None if credentials are not configured."""
+        from .config import load_config
+        config = load_config()
+        api_key = config.get('cf_api_key')
+        api_secret = config.get('cf_api_secret')
+        if not api_key or not api_secret:
+            return None
+
+        rand = str(random.randint(100000, 999999))
+        timestamp = str(int(_time.time()))
+
+        all_params = dict(params)
+        all_params['apiKey'] = api_key
+        all_params['time'] = timestamp
+
+        sorted_query = urlencode(sorted(all_params.items()))
+        hashable = f"{rand}/{method}?{sorted_query}#{api_secret}"
+        signature = hashlib.sha512(hashable.encode()).hexdigest()
+
+        all_params['apiSig'] = rand + signature
+        return f"https://codeforces.com/api/{method}?{urlencode(all_params)}"
+
+    def _fetch_standings(self, contest_id: str) -> Optional[dict]:
+        """Fetch contest.standings JSON, trying anonymous first then authenticated."""
+        from . import PlatformError
+
+        anon_url = f"https://codeforces.com/api/contest.standings?contestId={contest_id}"
+        try:
+            data = fetch_json(anon_url, timeout=10)
+            if data.get('status') == 'OK':
+                return data
+            if data.get('status') == 'FAILED':
+                raise PlatformError(f"CF API: {data.get('comment', 'unknown error')}")
+        except PlatformError as anon_err:
+            # Anonymous failed (e.g. gym contests need auth) — retry with credentials
+            auth_url = self._build_api_url('contest.standings', {'contestId': contest_id})
+            if auth_url is None:
+                raise PlatformError(
+                    f"{anon_err}. If this is a gym contest, set cf_api_key and "
+                    "cf_api_secret in your config (run 'cpt config')."
+                ) from anon_err
+            data = fetch_json(auth_url, timeout=10)
+            if data.get('status') == 'OK':
+                return data
+            if data.get('status') == 'FAILED':
+                raise PlatformError(f"CF API: {data.get('comment', 'unknown error')}")
+        return None
+
     def fetch_problem_name(self, contest_id: str, problem_id: str) -> Optional[str]:
         """Fetch problem name using Codeforces API."""
         try:
-            api_url = f"https://codeforces.com/api/contest.standings?contestId={contest_id}&from=1&count=1"
-            data = fetch_json(api_url, timeout=10)
-
-            if data['status'] == 'OK':
+            data = self._fetch_standings(contest_id)
+            if data:
                 for p in data['result']['problems']:
                     if p['index'] == problem_id:
                         return p['name']
@@ -150,14 +201,15 @@ class CodeforcesJudge(Judge):
 
     def fetch_contest_problems(self, contest_id: str) -> Dict[str, str]:
         """Fetch all problems using Codeforces API."""
+        from . import PlatformError
         try:
-            api_url = f"https://codeforces.com/api/contest.standings?contestId={contest_id}&from=1&count=1"
-            data = fetch_json(api_url, timeout=10)
-
-            if data['status'] == 'OK':
+            data = self._fetch_standings(contest_id)
+            if data:
                 return {p['index']: p['name'] for p in data['result']['problems']}
-        except Exception:
-            pass
+        except PlatformError:
+            raise
+        except Exception as e:
+            raise PlatformError(f"Failed to fetch contest problems: {e}") from e
         return {}
 
     def fetch_samples(self, url: str) -> Optional[List[SampleTest]]:
