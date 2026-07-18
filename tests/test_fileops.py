@@ -27,24 +27,53 @@ def test_generate_header():
         problem_name="Test Problem",
         author="Tester",
         status="AC",
+        tags="dp, graphs",
         created=dt
     )
-    
+
     assert "Author:      Tester" in header
     assert "Problem:     A - Test Problem" in header
     assert "Link:        http://example.com" in header
     assert "Status:      AC" in header
+    assert "Tags:        dp, graphs" in header
     assert "Created:     01-01-2024 12:00:00" in header
 
 
+def test_generate_header_no_tags():
+    """Test that Tags field is present even when empty."""
+    header = generate_header(problem_id="A", author="Tester")
+    assert "Tags:        " in header
+
+
 def test_read_problem_header(sample_cpp_file):
-    """Test reading header from existing file."""
+    """Test reading header from existing file (no Tags field — backward compat)."""
     header = read_problem_header(sample_cpp_file)
     assert header is not None
     assert header.problem == "A - Test Problem"
     assert header.link == "https://codeforces.com/contest/1234/problem/A"
     assert header.status == "~"
     assert header.created == "01-01-2024 12:00:00"
+    assert header.tags is None  # old file without Tags field
+
+
+def test_read_problem_header_with_tags(temp_dir):
+    """Test reading tags from header."""
+    content = (
+        "/**\n"
+        " * Problem: A\n"
+        " * Link: http://x\n"
+        " * Status: AC\n"
+        " * Tags: dp, binary search\n"
+        " * Created: 01-01-2024 12:00:00\n"
+        " **/\n"
+        "int main() {}\n"
+    )
+    filepath = os.path.join(temp_dir, "A.cpp")
+    with open(filepath, 'w') as f:
+        f.write(content)
+
+    header = read_problem_header(filepath)
+    assert header.tags == "dp, binary search"
 
 
 def test_update_problem_status(sample_cpp_file):

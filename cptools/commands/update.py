@@ -143,7 +143,8 @@ def generate_info_md(directory):
             'problem': hdr.problem,
             'link': hdr.link,
             'status': best_status,
-            'created': hdr.created
+            'created': hdr.created,
+            'tags': hdr.tags,
         })
 
     if not problems:
@@ -190,25 +191,29 @@ def generate_info_md(directory):
     content += f"**Progress**: {solved_count}/{len(problems)} solved\n\n"
 
     # Problems table
+    has_tags = any(p['tags'] for p in problems)
+
     content += "## Problems\n\n"
-    content += "| Problem | Status |\n"
-    content += "|---------|--------|\n"
+    if has_tags:
+        content += "| Problem | Status | Tags |\n"
+        content += "|---------|--------|------|\n"
+    else:
+        content += "| Problem | Status |\n"
+        content += "|---------|--------|\n"
 
     for p in problems:
-        # Get emoji for status
         emoji = get_status_emoji(p['status'])
-
-        # Format problem title
         problem_title = p['problem'] if p['problem'] else p['char']
-
-        # Format status label
         status_label = '' if p['status'] in ['~', ''] else p['status']
+        title_cell = f"[{problem_title}]({p['link']})" if p['link'] else problem_title
 
-        # Add link if available
-        if p['link']:
-            content += f"| [{problem_title}]({p['link']}) | {emoji} {status_label} |\n"
+        if has_tags:
+            tags_cell = ' '.join(
+                f'`{t.strip()}`' for t in p['tags'].split(',') if t.strip()
+            ) if p['tags'] else ''
+            content += f"| {title_cell} | {emoji} {status_label} | {tags_cell} |\n"
         else:
-            content += f"| {problem_title} | {emoji} {status_label} |\n"
+            content += f"| {title_cell} | {emoji} {status_label} |\n"
 
     # Write info.md
     info_path = os.path.join(directory, "info.md")

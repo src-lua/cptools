@@ -22,10 +22,11 @@ class ProblemHeader:
     link: Optional[str]
     status: str
     created: Optional[str]
+    tags: Optional[str] = None
 
 
 def generate_header(problem_id, link="", problem_name=None, author="Unknown",
-                   status="~", created=None):
+                   status="~", tags="", created=None):
     """
     Generate standard C++ file header with problem metadata.
 
@@ -69,6 +70,7 @@ def generate_header(problem_id, link="", problem_name=None, author="Unknown",
  * Problem:     {problem_title}
  * Link:        {link}
  * Status:      {status}
+ * Tags:        {tags}
  * Created:     {created_str}
  **/
 
@@ -100,7 +102,8 @@ def read_problem_header(filepath):
             'problem': None,
             'link': None,
             'status': '~',
-            'created': None
+            'created': None,
+            'tags': None,
         }
 
         for line in content.split('\n'):
@@ -110,6 +113,9 @@ def read_problem_header(filepath):
                 info['link'] = line.split('Link:')[1].strip().replace('*/', '').strip()
             elif 'Status:' in line:
                 info['status'] = line.split('Status:')[1].strip().replace('*/', '').strip()
+            elif 'Tags:' in line:
+                raw = line.split('Tags:')[1].strip().replace('*/', '').strip()
+                info['tags'] = raw if raw else None
             elif 'Created:' in line:
                 info['created'] = line.split('Created:')[1].strip().replace('*/', '').strip()
 

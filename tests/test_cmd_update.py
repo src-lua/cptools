@@ -264,6 +264,53 @@ def test_update_variations_without_base(tmp_path):
     # Should NOT include v2
     assert "Version 2" not in content
 
+def test_update_shows_tags_column(tmp_path):
+    """Test that Tags column appears in info.md when at least one problem has tags."""
+    d = tmp_path / "contest"
+    d.mkdir()
+
+    (d / "A.cpp").write_text(
+        "/**\n"
+        " * Problem: A - Two Sum\n"
+        " * Status: AC\n"
+        " * Tags: dp, math\n"
+        " * Link: https://cf.com/A\n"
+        " */"
+    )
+    (d / "B.cpp").write_text(
+        "/**\n"
+        " * Problem: B - Other\n"
+        " * Status: WA\n"
+        " * Tags: \n"
+        " */"
+    )
+
+    with patch('sys.argv', ['cptools-update', str(d)]):
+        update.run()
+
+    content = (d / "info.md").read_text()
+
+    assert "| Tags |" in content
+    assert "`dp`" in content
+    assert "`math`" in content
+
+
+def test_update_no_tags_column_when_all_empty(tmp_path):
+    """Test that Tags column is omitted when no problem has tags."""
+    d = tmp_path / "contest"
+    d.mkdir()
+
+    (d / "A.cpp").write_text(
+        "/**\n * Problem: A\n * Status: AC\n * Tags: \n */"
+    )
+
+    with patch('sys.argv', ['cptools-update', str(d)]):
+        update.run()
+
+    content = (d / "info.md").read_text()
+    assert "| Tags |" not in content
+
+
 def test_update_version_uses_best_status(tmp_path):
     """Test that _N versions use the highest-priority status across all versions."""
     d = tmp_path / "contest"

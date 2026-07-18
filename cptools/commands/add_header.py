@@ -37,7 +37,7 @@ def has_header(filepath):
         return False
 
 
-def add_header_to_file(filepath, problem_id, link="", problem_name=None, status="~", force=False):
+def add_header_to_file(filepath, problem_id, link="", problem_name=None, status="~", tags="", force=False):
     """
     Add a header to an existing C++ file.
 
@@ -76,7 +76,8 @@ def add_header_to_file(filepath, problem_id, link="", problem_name=None, status=
         link=link,
         problem_name=problem_name,
         author=author,
-        status=status
+        status=status,
+        tags=tags,
     )
 
     # If force and has existing header, remove it
@@ -117,6 +118,7 @@ def get_parser():
     parser.add_argument('-l', '--link', default='', help='Problem URL')
     parser.add_argument('-n', '--name', help='Problem name')
     parser.add_argument('-s', '--status', default='~', help='Initial status (default: ~)')
+    parser.add_argument('-t', '--tags', default='', help='Comma-separated tags (e.g., "dp, graphs")')
     parser.add_argument('-f', '--force', action='store_true',
                        help='Overwrite existing header')
     return parser
@@ -145,6 +147,7 @@ def run():
         link=opts.link,
         problem_name=opts.name,
         status=opts.status,
+        tags=opts.tags,
         force=opts.force
     ):
         success(f"✓ Added header to {filepath}")
